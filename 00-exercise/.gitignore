@@ -3,6 +3,10 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 .kotlin
+*.class
+.idea/
+*.iml
+__pycache__/
 
 ### Eclipse ###
 .apt_generated
