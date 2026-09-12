@@ -1,8 +1,8 @@
-package Excercise;
+package excercise;
 
 import java.util.Scanner;
 
-public class ex2 {
+public class Ex2 {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         long input = scanner.nextLong();
