@@ -1,13 +1,14 @@
 package q42748;
 
+import java.util.Arrays;
+
+// https://school.programmers.co.kr/learn/courses/30/lessons/42748
 public class Test {
     public static void main(String[] args) {
         Solution sol = new Solution();
         int[] array = {1, 5, 2, 6, 3, 7, 4};
         int[][] commands = {{2, 5, 3}, {4, 4, 1}, {1, 7, 3}};
-        for (int answer : sol.solution(array, commands)) {
-            System.out.print(answer + " ");
-        }
+        System.out.println(Arrays.toString(sol.solution(array, commands)));
     }
 }
 

@@ -1,6 +1,9 @@
 package q42840;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // 수업 시간에 배운 컬렉션, 객체 지향, 스트림, 람다를 활용해 보았음.
 // 컬렉션: List와 Map 사용
@@ -9,10 +12,12 @@ import java.util.*;
 // 람다: filter의 조건을 람다식으로 작성
 // 메서드 참조: Student::getNumber 사용
 
+// https://school.programmers.co.kr/learn/courses/30/lessons/42840
 public class Test {
     public static void main(String[] args) {
         Solution sol = new Solution();
-        System.out.println(Arrays.toString(sol.solution(new int[]{1, 3, 2, 4, 2})));
+        System.out.println(Arrays.toString(sol.solution(new int[]{1,2,3,4,5})));
+        System.out.println(Arrays.toString(sol.solution(new int[]{1,3,2,4,2})));
     }
 }
 
@@ -25,16 +30,16 @@ class Solution {
         );
 
         int max = 0;
-        Map<Student, Integer> scoreByStudent = new HashMap<>();
+        Map<Student, Integer> scoresByStudent = new HashMap<>();
         for (Student student : students) {
             int score = student.calculateScore(answers);
-            scoreByStudent.put(student, score);
+            scoresByStudent.put(student, score);
             max = Math.max(max, score);
         }
 
         int finalMax = max;
         return students.stream()
-                .filter((student) -> scoreByStudent.get(student) == finalMax)
+                .filter((student) -> scoresByStudent.get(student) == finalMax)
                 .mapToInt(Student::getNumber)
                 .toArray();
     }
