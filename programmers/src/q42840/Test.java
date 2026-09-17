@@ -12,6 +12,7 @@ import java.util.Map;
 // 람다: filter의 조건을 람다식으로 작성
 // 메서드 참조: Student::getNumber 사용
 
+// 모의고사
 // https://school.programmers.co.kr/learn/courses/30/lessons/42840
 public class Test {
     public static void main(String[] args) {
@@ -23,20 +24,23 @@ public class Test {
 
 class Solution {
     public int[] solution(int[] answers) {
+        // 학생 리스트
         List<Student> students = List.of(
                 new Student(1, new int[]{1, 2, 3, 4, 5}),
                 new Student(2, new int[]{2, 1, 2, 3, 2, 4, 2, 5}),
                 new Student(3, new int[]{3, 3, 1, 1, 2, 2, 4, 4, 5, 5})
         );
 
-        int max = 0;
+        // 학생과 채점 결과 점수를 매핑, 최고점 구함
         Map<Student, Integer> scoresByStudent = new HashMap<>();
+        int max = 0;
         for (Student student : students) {
             int score = student.calculateScore(answers);
             scoresByStudent.put(student, score);
             max = Math.max(max, score);
         }
 
+        // 학생 리스트를 순회하며 최고점을 가진 학생들만 필터링 후 배열로 변환
         int finalMax = max;
         return students.stream()
                 .filter((student) -> scoresByStudent.get(student) == finalMax)
@@ -54,11 +58,13 @@ class Student {
 
     private final int[] pattern;
 
+    // 학생은 번호와 찍기 패턴을 가짐
     Student(int number, int[] pattern) {
         this.number = number;
         this.pattern = pattern;
     }
 
+    // 정답 배열을 받아 점수 계산
     int calculateScore(int[] answers) {
         int divisor = pattern.length;
         int score = 0;

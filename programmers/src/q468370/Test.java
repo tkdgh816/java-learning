@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+// 중요한 단어를 스포 방지
 // https://school.programmers.co.kr/learn/courses/30/lessons/468370
 public class Test {
     public static void main(String[] args) {

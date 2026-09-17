@@ -1,10 +1,10 @@
 package q258712;
 
-// https://school.programmers.co.kr/learn/courses/30/lessons/258712
-
 import java.util.*;
 import java.util.stream.Collectors;
 
+// 가장 많이 받은 선물
+// https://school.programmers.co.kr/learn/courses/30/lessons/258712
 public class Test {
     public static void main(String[] args) {
         Solution sol = new Solution();

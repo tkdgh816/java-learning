@@ -3,6 +3,7 @@ package q468371;
 import java.util.Arrays;
 import java.util.List;
 
+// 노란불 신호등
 // https://school.programmers.co.kr/learn/courses/30/lessons/468371
 public class Test {
     public static void main(String[] args) {
