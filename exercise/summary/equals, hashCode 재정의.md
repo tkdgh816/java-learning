@@ -3,7 +3,6 @@
 ## 재정의해야 하는 이유
 - 두 객체의 동등성 비교 시 `equals()`와 `hashCode()` 메서드를 모두 사용하는 경우가 많기 때문이다.
 
-## 개요
 - HashSet이나 HashMap 같은 컬렉션은 항목을 찾을 때 hashCode() 결과가 같은지 우선 비교하고 그 다음 equals() 결과가 같은지 비교하여 동등 객체임을 확인한다.
 
 ```mermaid
@@ -87,7 +86,7 @@ System.out.println(members.size());   // 2
 ```
 
 ## 여러 상황들
-- 두 객체를 비교할 때 다음과 같은 세 가지 상황을 생각해 볼 수 있다.
+- 다음과 같은 세 가지 상황을 생각해 볼 수 있다.
 
 **1. equals()가 true이지만 hashCode() 다름 → 잘못된 구현**
 - 위의 예시가 이에 해당한다.
@@ -143,7 +142,7 @@ class Member {
 }
 ```
 
-- 이제 다음 코드를 실행해 보면, m2를 추가했을 때 두 객체의 hashCode()가 같기 때문에 HashMap에서 equals()를 호출하여 동등성 비교를 하였음을 알 수 있다. equals()도 true이기 때문에 m2 추가 시 Set에 m2는 추가되지 않고 false를 반환한다.
+- 이제 다음 코드를 실행해 보면, m2를 추가했을 때 두 객체의 hashCode()가 같기 때문에 HashSet에서 equals()를 호출하여 동등성 비교를 하였음을 알 수 있다. equals()도 true이기 때문에 m2 추가 시 Set에 m2는 추가되지 않고 false를 반환한다.
 
 ```java
 Member m1 = new Member("James");
