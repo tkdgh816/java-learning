@@ -76,7 +76,7 @@ public static void main(String[] args) {
     }
 }
 
-public void readFile() throws FileNotFoundException {
+public static void readFile() throws FileNotFoundException {
     FileReader reader = new FileReader("test.txt");
 }
 ```

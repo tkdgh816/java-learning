@@ -6,9 +6,13 @@ import java.io.FileReader;
 public class Ex3 {
     public static void main(String[] args) {
         try {
-            FileReader reader = new FileReader("test.txt");
+            readFile();
         } catch (FileNotFoundException e) {
             System.out.println("파일을 찾을 수 없습니다.");
         }
+    }
+
+    public static void readFile() throws FileNotFoundException {
+        FileReader reader = new FileReader("test.txt");
     }
 }
