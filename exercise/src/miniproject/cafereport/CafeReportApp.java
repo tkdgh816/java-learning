@@ -49,17 +49,17 @@ public class CafeReportApp {
         }
 
         // TODO: 보고서를 문자열로 만들고 콘솔 출력과 파일 저장을 구현하세요.
-        String reportString = createReport(branchesByName.values(), errorCount);
+        String report = createReport(branchesByName.values(), errorCount);
 
         // 콘솔 출력
         System.out.println();
-        System.out.println(reportString);
+        System.out.println(report);
 
         // 파일 저장
         System.out.println();
         try {
             Files.createDirectories(output.getParent());
-            Files.writeString(output, reportString, StandardCharsets.UTF_8);
+            Files.writeString(output, report, StandardCharsets.UTF_8);
             System.out.println("보고서 파일 저장 완료");
         } catch (IOException e) {
             System.out.println("보고서 파일 저장 실패");
