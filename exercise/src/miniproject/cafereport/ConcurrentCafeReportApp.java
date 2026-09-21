@@ -166,6 +166,8 @@ class BranchFileThread extends Thread {
             return Order.create(menu, price, quantity);
         } catch (NumberFormatException e) {
             return null;
+        } catch (InvalidOrderException e) {
+            return null;
         }
     }
 }

@@ -23,17 +23,17 @@ public class Order {
         return (long) price * quantity;
     }
 
-    public static Order create(String menu, int price, int quantity) {
+    public static Order create(String menu, int price, int quantity) throws InvalidOrderException {
         if (menu == null || menu.isBlank()) {
-            return null;
+            throw new InvalidOrderException("메뉴명이 비어 있음");
         }
 
         if (price <= 0) {
-            return null;
+            throw new InvalidOrderException("가격은 0보다 커야 함");
         }
 
         if (quantity <= 0) {
-            return null;
+            throw new InvalidOrderException("수량은 0보다 커야 함");
         }
 
         return new Order(menu, price, quantity);
