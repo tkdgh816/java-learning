@@ -1,4 +1,4 @@
-package miniproject.cafereport;
+package miniproject.cafereport.domain;
 
 import java.util.*;
 
