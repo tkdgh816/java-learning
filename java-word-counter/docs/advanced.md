@@ -275,7 +275,7 @@ JDBC에서는 문장을 `PreparedStatement`로 준비하고 `?`에 값을 넣어
 ```java
 connection.setAutoCommit(false);                 // 3단계부터: 문장마다 커밋하지 않음
 try (PreparedStatement upsert = connection.prepareStatement(
-        "INSERT INTO word_counts (word, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1")) {
+        "INSERT INTO word_counts (token, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1")) {
     for (String token : tokens) {
         upsert.setString(1, token);
         upsert.addBatch();                       // 4단계부터: 모아 두기. 1~3단계는 executeUpdate()

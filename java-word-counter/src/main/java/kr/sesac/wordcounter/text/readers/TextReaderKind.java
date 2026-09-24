@@ -1,13 +1,14 @@
-package kr.sesac.wordcounter.textreader;
+package kr.sesac.wordcounter.text.readers;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
 public enum TextReaderKind {
     TXT(TxtReader::new),
-    CSV(CsvReader::new),
-    TSV(TsvReader::new),
-    HTML(HtmlReader::new);
+    CSV(() -> new CsvReader(List.of("text"))),
+    TSV(() -> new TsvReader(List.of("document"))),
+    HTML(() -> new HtmlReader("#content"));
 
     private final Supplier<TextReader> supplier;
 
@@ -25,7 +26,7 @@ public enum TextReaderKind {
         };
     }
 
-    public TextReader getTextReader() {
+    public TextReader createReader() {
         return supplier.get();
     }
 }
