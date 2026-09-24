@@ -1,11 +1,9 @@
 package q12915;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
-// 폰켓몬
-// https://school.programmers.co.kr/learn/courses/30/lessons/1845
+// 문자열 내 마음대로 정렬하기
+// https://school.programmers.co.kr/learn/courses/30/lessons/12915
 public class Test {
     public static void main(String[] args) {
         Solution sol = new Solution();
@@ -16,19 +14,11 @@ public class Test {
 
 class Solution {
     public String[] solution(String[] words, int n) {
-        WordInfo[] wordInfos = new WordInfo[words.length];
-        for (int i = 0; i < words.length; i++) {
-            wordInfos[i] = new WordInfo(words[i], n);
-        }
-
-        Arrays.sort(wordInfos);
-
-        String[] results = new String[words.length];
-        for (int i = 0; i < words.length; i++) {
-            results[i] = wordInfos[i].getWord();
-        }
-
-        return results;
+        return Arrays.stream(words)
+                .map(word -> new WordInfo(word, n))
+                .sorted()
+                .map(WordInfo::getWord)
+                .toArray(String[]::new);
     }
 }
 
@@ -38,11 +28,7 @@ class WordInfo implements Comparable<WordInfo> {
 
     WordInfo(String word, int index) {
         this.word = word;
-        try {
-            nChar = word.charAt(index);
-        } catch (IndexOutOfBoundsException e) {
-            throw new IllegalArgumentException();
-        }
+        nChar = word.charAt(index);
     }
 
     public String getWord() {
@@ -52,6 +38,7 @@ class WordInfo implements Comparable<WordInfo> {
     @Override
     public int compareTo(WordInfo other) {
         int diff = this.nChar - other.nChar;
+//        diff = Character.compare(this.nChar, other.nChar);
 
         if (diff == 0) {
             return this.word.compareTo(other.word);
