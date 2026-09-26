@@ -1,8 +1,10 @@
 package kr.sesac.wordcounter;
 
-import kr.sesac.wordcounter.analyzer.Analyzer;
-import kr.sesac.wordcounter.text.TokenCount;
-import kr.sesac.wordcounter.text.tokenizers.RegexTokenizer;
+import kr.sesac.wordcounter.analysis.AnalysisSummary;
+import kr.sesac.wordcounter.analysis.Analyzer;
+import kr.sesac.wordcounter.analysis.FileAnalysisFailure;
+import kr.sesac.wordcounter.analysis.TokenCount;
+import kr.sesac.wordcounter.text.tokenizers.SimpleTokenizer;
 import kr.sesac.wordcounter.text.tokenizers.TextTokenizer;
 
 import java.io.BufferedWriter;
@@ -13,13 +15,25 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * 첫 실행용 코드입니다. TXT 내용을 읽은 뒤 TODO를 채우며 기능을 추가하세요.
- * 구현 기준은 docs/requirements.md에 있습니다.
- */
+/*
+samples/equivalent
+samples/edge
+samples/invalid
+data/chatbot
+data/klue-ynat
+data/klue-ynat/formats
+data/klue-ynat/many
+data/licenses
+data/performance
+data/performance/many
+data/local/perf-64
+data/local/perf-64/news-repeat-64.csv
+data/local/perf-64/many
+*/
+
 public class Main {
     private static Analyzer analyzer;
-    private static final TextTokenizer TOKENIZER = new RegexTokenizer();
+    private static final TextTokenizer TOKENIZER = new SimpleTokenizer();
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -30,12 +44,12 @@ public class Main {
             switch (menu) {
                 case 1 -> {
                     analyzer = getAnalyzer();
-                    System.out.println(analyzer.getSummary());
+                    printSummary(true);
                 }
                 case 2 -> printTopWords();
                 case 3 -> findWord();
                 case 4 -> saveResults();
-                case 5 -> printSummary();
+                case 5 -> printSummary(false);
                 case 0 -> {
                     System.out.println("프로그램을 종료합니다.");
                     return;
@@ -55,10 +69,6 @@ public class Main {
                 5. 최근 분석 요약 보기
                 0. 종료
                 ====================""");
-        if (analyzer != null) {
-            System.out.println("최근 분석됨: " + analyzer.getInputPath());
-        }
-
         System.out.println();
     }
 
@@ -103,6 +113,35 @@ public class Main {
         }
 
         return true;
+    }
+
+    private static void printSummary(boolean containsFailures) {
+        if (!validateAnalysis()) {
+            return;
+        }
+
+        AnalysisSummary result = analyzer.getSummary();
+        StringBuilder summary = new StringBuilder();
+
+        if (containsFailures) {
+            for (FileAnalysisFailure failure : result.failures()) {
+                summary.append(String.format("파일 분석 실패: %s%n", failure.filePath()));
+                summary.append(String.format("원인: %s%n%n", failure.reason()));
+            }
+        }
+
+        summary.append(String.format("입력: %s%n", result.inputPath()));
+        summary.append(String.format("파일: 시도 %d개 / 성공 %d개 / 실패 %d개 / 건너뜀 %d개%n",
+                result.fileSummary().attemptedCount(),
+                result.fileSummary().successfulCount(),
+                result.fileSummary().failedCount(),
+                result.fileSummary().skippedCount()));
+        summary.append(String.format("전체 단어: %d개 / 서로 다른 단어: %d개%n",
+                result.wordSummary().totalCount(),
+                result.wordSummary().uniqueCount()));
+        summary.append(String.format("처리 시간: %dms%n", result.elapsedMilliseconds()));
+
+        System.out.println(summary);
     }
 
     private static Analyzer getAnalyzer() {
@@ -192,27 +231,4 @@ public class Main {
 
         System.out.println();
     }
-
-    private static void printSummary() {
-        if (!validateAnalysis()) {
-            return;
-        }
-
-        System.out.println(analyzer.getSummary());
-    }
 }
-
-/*
-samples/equivalent
-samples/edge
-samples/invalid
-data/chatbot
-data/klue-ynat
-data/klue-ynat/formats
-data/klue-ynat/many
-data/licenses
-data/performance
-data/performance/many
-data/local/perf-64
-data/local/perf-64/many
-*/

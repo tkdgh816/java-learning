@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class DelimitedTableReader implements TextReader {
@@ -29,9 +30,7 @@ public abstract class DelimitedTableReader implements TextReader {
     abstract CSVFormat getFormat();
 
     @Override
-    public List<String> getTokens(Path filePath, TextTokenizer tokenizer) throws IOException {
-        List<String> tokens = new ArrayList<>();
-
+    public void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
              CSVParser parser = getFormat().parse(reader)) {
 
@@ -47,14 +46,12 @@ public abstract class DelimitedTableReader implements TextReader {
                 }
 
                 for (Integer targetHeaderIndex : targetHeaderIndexes) {
-                    tokens.addAll(tokenizer.tokenize(record.get(targetHeaderIndex)));
+                    tokenizer.tokenize(record.get(targetHeaderIndex)).forEach(tokenConsumer);
                 }
             }
-        } catch (UncheckedIOException | IllegalArgumentException  e) {
+        } catch (UncheckedIOException | IllegalArgumentException e) {
             throw new IOException(e.getMessage());
         }
-
-        return tokens;
     }
 
     // 입력 헤더와 일치하는 파일 헤더 인덱스를 반환

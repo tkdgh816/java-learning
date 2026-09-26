@@ -8,7 +8,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.function.Consumer;
 
 public class HtmlReader implements TextReader {
     private static final String EXCLUDED_SELECTORS = "script, style, nav, header, footer";
@@ -20,7 +20,7 @@ public class HtmlReader implements TextReader {
     }
 
     @Override
-    public List<String> getTokens(Path filePath, TextTokenizer tokenizer) throws IOException {
+    public void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer) throws IOException {
         Document document = Jsoup.parse(filePath.toFile(), "UTF-8");
         Elements matches = document.select(selector);
         if (matches.size() != 1) {
@@ -30,6 +30,6 @@ public class HtmlReader implements TextReader {
         Element element = matches.getFirst();
         element.select(EXCLUDED_SELECTORS).remove();
 
-        return tokenizer.tokenize(element.text());
+        tokenizer.tokenize(element.text()).forEach(tokenConsumer);
     }
 }
