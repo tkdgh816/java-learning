@@ -212,7 +212,7 @@ URL 목록 파일 → 다운로드 → 원본 파일 저장 → 기존 파서·�
    `tokens`와 `word_counts` 두 줄이 나오면 됩니다. 앞에 붙는 `[Warning] Using a password ...`는 무시합니다.
 
    | 문제 | 확인할 것 |
-      |---|---|
+   |---|---|
    | `Cannot connect to the Docker daemon` | Docker Desktop 앱이 실행 중인지 확인 |
    | `port is already allocated` | `compose.yaml`의 `"3307:3306"`에서 3307을 다른 번호로 바꾸고 연결 URL도 같이 변경 |
    | 표가 나오지 않음 | `init.sql`은 컨테이너를 처음 만들 때만 실행됩니다. `docker compose -f tools/db/compose.yaml down -v` 뒤 다시 `up -d` |
@@ -242,7 +242,7 @@ URL 목록 파일 → 다운로드 → 원본 파일 저장 → 기존 파서·�
    URL 뒤의 옵션 중 `rewriteBatchedStatements=true`는 배치를 한 문장으로 합쳐 보내는 설정이고, 나머지 둘은 같은 컴퓨터 안의 실습용 연결이라 암호화를 끄는 설정입니다.
 
    | 문제 | 확인할 것 |
-      |---|---|
+   |---|---|
    | `No suitable driver found` | 3번의 의존성 추가와 Maven 새로고침 |
    | `Communications link failure` | 컨테이너가 실행 중인지(`docker ps`), 포트 번호가 URL과 같은지 |
    | `Access denied for user` | 사용자와 비밀번호가 `wordcount`인지 |
@@ -262,10 +262,10 @@ SQL은 다음 다섯 문장이 전부입니다. `?` 자리에 Java에서 값을 
 
 ```sql
 SELECT count FROM word_counts WHERE word = ?
-   INSERT INTO word_counts (word, count) VALUES (?, 1)
+INSERT INTO word_counts (word, count) VALUES (?, 1)
 UPDATE word_counts SET count = count + 1 WHERE word = ?
-   INSERT INTO word_counts (word, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1
-                                                                        INSERT INTO word_counts (word, count) VALUES (?, ?) ON DUPLICATE KEY UPDATE count = count + VALUES(count)
+INSERT INTO word_counts (word, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1
+INSERT INTO word_counts (word, count) VALUES (?, ?) ON DUPLICATE KEY UPDATE count = count + VALUES(count)
 ```
 
 `ON DUPLICATE KEY UPDATE`는 같은 단어(기본 키)가 이미 있으면 추가 대신 뒤의 수정을 실행하라는 뜻입니다. 마지막 문장의 `VALUES(count)`는 "지금 넣으려던 행의 count 값"으로, 파일별로 집계한 횟수를 이미 있는 행에 더할 때 씁니다. 표를 비울 때는 `TRUNCATE TABLE word_counts`와 `TRUNCATE TABLE tokens`를 씁니다.
@@ -276,17 +276,17 @@ JDBC에서는 문장을 `PreparedStatement`로 준비하고 `?`에 값을 넣어
 connection.setAutoCommit(false);                 // 3단계부터: 문장마다 커밋하지 않음
 try (PreparedStatement upsert = connection.prepareStatement(
         "INSERT INTO word_counts (token, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1")) {
-        for (String token : tokens) {
+    for (String token : tokens) {
         upsert.setString(1, token);
         upsert.addBatch();                       // 4단계부터: 모아 두기. 1~3단계는 executeUpdate()
         if (++pending == 5000) {
-        upsert.executeBatch();               // 모은 것을 한 번에 보내기
-pending = 0;
+            upsert.executeBatch();               // 모은 것을 한 번에 보내기
+            pending = 0;
         }
-        }
-        upsert.executeBatch();                       // 남은 것 보내기
+    }
+    upsert.executeBatch();                       // 남은 것 보내기
 }
-        connection.commit();                             // 3단계부터: 마지막에 한 번 확정
+connection.commit();                             // 3단계부터: 마지막에 한 번 확정
 ```
 
 ### 단계

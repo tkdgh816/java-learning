@@ -20,7 +20,7 @@ public class Analyzer {
     private final AnalysisSummary analysisSummary;
     private final List<FileAnalysisFailure> failures = new ArrayList<>();
 
-    public Analyzer(String pathString, TextTokenizer tokenizer) throws IOException {
+    public Analyzer(String pathString, TextTokenizer tokenizer, AnalysisMode analysisMode) throws IOException {
         if (tokenizer == null) {
             throw new IllegalArgumentException("tokenizer는 null일 수 없습니다.");
         }
@@ -69,8 +69,10 @@ public class Analyzer {
 
 
         long elapsedNanoTime = System.nanoTime();
-//        analyze(readerKindsByPath);
-        analyzeConcurrent(readerKindsByPath);
+        switch (analysisMode) {
+            case AnalysisMode.SEQUENTIAL -> analyzeSequential(readerKindsByPath);
+            case AnalysisMode.FIXED_THREAD_POOL -> analyzeFixedThreadPool(readerKindsByPath);
+        }
         elapsedNanoTime = System.nanoTime() - elapsedNanoTime;
 
         FileAnalysisSummary fileSummary = new FileAnalysisSummary(readerKindsByPath.size(), successfulFileCount, skippedFileCount);
@@ -87,7 +89,7 @@ public class Analyzer {
         return successfulFileCount > 0;
     }
 
-    private void analyze(Map<Path, TextReaderKind> readerKindsByPath) {
+    private void analyzeSequential(Map<Path, TextReaderKind> readerKindsByPath) {
         for (var entry : readerKindsByPath.entrySet()) {
             Path filePath = entry.getKey();
             // 파일 유형에 해당하는 TextReader 가져옴
@@ -105,7 +107,7 @@ public class Analyzer {
 
     private static final int MAX_THREAD_COUNT = 4;
 
-    private void analyzeConcurrent(Map<Path, TextReaderKind> readerKindsByPath) throws IOException {
+    private void analyzeFixedThreadPool(Map<Path, TextReaderKind> readerKindsByPath) throws IOException {
         // 파일 경로와 파일 분석 결과
         Map<Path, Future<FileAnalyzer>> futuresByFilePath = new HashMap<>();
 

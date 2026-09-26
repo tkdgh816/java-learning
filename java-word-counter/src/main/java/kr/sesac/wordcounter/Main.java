@@ -1,9 +1,6 @@
 package kr.sesac.wordcounter;
 
-import kr.sesac.wordcounter.analysis.AnalysisSummary;
-import kr.sesac.wordcounter.analysis.Analyzer;
-import kr.sesac.wordcounter.analysis.FileAnalysisFailure;
-import kr.sesac.wordcounter.analysis.TokenCount;
+import kr.sesac.wordcounter.analysis.*;
 import kr.sesac.wordcounter.text.tokenizers.SimpleTokenizer;
 import kr.sesac.wordcounter.text.tokenizers.TextTokenizer;
 
@@ -34,6 +31,7 @@ data/local/perf-64/many
 public class Main {
     private static Analyzer analyzer;
     private static final TextTokenizer TOKENIZER = new SimpleTokenizer();
+    private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.FIXED_THREAD_POOL;
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -149,7 +147,7 @@ public class Main {
             try {
                 System.out.print("파일 또는 폴더 경로: ");
                 String pathString = scanner.nextLine().strip();
-                return new Analyzer(pathString, TOKENIZER);
+                return new Analyzer(pathString, TOKENIZER, ANALYSIS_MODE);
             } catch (IOException | IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
