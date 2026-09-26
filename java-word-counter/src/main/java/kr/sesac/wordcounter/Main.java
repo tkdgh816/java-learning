@@ -1,8 +1,11 @@
 package kr.sesac.wordcounter;
 
 import kr.sesac.wordcounter.analysis.*;
-import kr.sesac.wordcounter.text.tokenizers.SimpleTokenizer;
-import kr.sesac.wordcounter.text.tokenizers.TextTokenizer;
+import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
+import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
+import kr.sesac.wordcounter.model.TokenCount;
+import kr.sesac.wordcounter.repository.*;
+import kr.sesac.wordcounter.text.tokenizer.*;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -33,6 +36,10 @@ public class Main {
     private static final TextTokenizer TOKENIZER = new SimpleTokenizer();
     private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.FIXED_THREAD_POOL;
     private static final Scanner scanner = new Scanner(System.in);
+
+    private static TokenCountRepository createRepository(){
+        return new InMemoryRepository();
+    }
 
     public static void main(String[] args) {
         printMenu();
@@ -147,7 +154,7 @@ public class Main {
             try {
                 System.out.print("파일 또는 폴더 경로: ");
                 String pathString = scanner.nextLine().strip();
-                return new Analyzer(pathString, TOKENIZER, ANALYSIS_MODE);
+                return new Analyzer(pathString, TOKENIZER, createRepository(), ANALYSIS_MODE);
             } catch (IOException | IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
@@ -195,7 +202,7 @@ public class Main {
             String word = scanner.nextLine().strip();
 
             try {
-                TokenCount tokenCount = analyzer.findWord(word);
+                TokenCount tokenCount = analyzer.findByWord(word);
                 System.out.printf("%s: %d회%n", tokenCount.token(), tokenCount.count());
                 break;
             } catch (IllegalArgumentException e) {

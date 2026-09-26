@@ -1,4 +1,4 @@
-package kr.sesac.wordcounter.text.readers;
+package kr.sesac.wordcounter.text.reader;
 
 import java.util.List;
 import java.util.Locale;

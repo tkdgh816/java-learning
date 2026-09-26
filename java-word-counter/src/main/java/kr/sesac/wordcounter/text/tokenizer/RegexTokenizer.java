@@ -1,4 +1,4 @@
-package kr.sesac.wordcounter.text.tokenizers;
+package kr.sesac.wordcounter.text.tokenizer;
 
 import java.util.ArrayList;
 import java.util.List;

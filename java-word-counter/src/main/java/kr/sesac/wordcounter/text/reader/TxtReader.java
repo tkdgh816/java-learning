@@ -1,14 +1,12 @@
-package kr.sesac.wordcounter.text.readers;
+package kr.sesac.wordcounter.text.reader;
 
-import kr.sesac.wordcounter.text.tokenizers.TextTokenizer;
+import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class TxtReader implements TextReader {

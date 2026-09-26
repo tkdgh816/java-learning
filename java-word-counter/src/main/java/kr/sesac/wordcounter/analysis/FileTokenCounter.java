@@ -1,7 +1,8 @@
 package kr.sesac.wordcounter.analysis;
 
-import kr.sesac.wordcounter.text.readers.TextReader;
-import kr.sesac.wordcounter.text.tokenizers.TextTokenizer;
+import kr.sesac.wordcounter.model.TokenCount;
+import kr.sesac.wordcounter.text.reader.TextReader;
+import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -9,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class FileAnalyzer{
+class FileTokenCounter {
     private final Path filePath;
     private final TextReader textReader;
     private final TextTokenizer tokenizer;
@@ -17,7 +18,7 @@ class FileAnalyzer{
     private final Map<String, Long> countsByToken = new HashMap<>();
     private long wordCount;
 
-    FileAnalyzer(Path filePath, TextReader textReader, TextTokenizer tokenizer) throws IOException {
+    FileTokenCounter(Path filePath, TextReader textReader, TextTokenizer tokenizer) throws IOException {
         this.filePath = filePath;
         this.textReader = textReader;
         this.tokenizer = tokenizer;

@@ -1,6 +1,6 @@
-package kr.sesac.wordcounter.text.readers;
+package kr.sesac.wordcounter.text.reader;
 
-import kr.sesac.wordcounter.text.tokenizers.TextTokenizer;
+import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;

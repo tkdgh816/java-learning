@@ -1,6 +1,6 @@
-package kr.sesac.wordcounter.text.readers;
+package kr.sesac.wordcounter.text.reader;
 
-import kr.sesac.wordcounter.text.tokenizers.TextTokenizer;
+import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

@@ -1,6 +1,6 @@
-package kr.sesac.wordcounter.text.readers;
+package kr.sesac.wordcounter.text.reader;
 
-import kr.sesac.wordcounter.text.tokenizers.TextTokenizer;
+import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
 import java.io.IOException;
 import java.nio.file.Path;

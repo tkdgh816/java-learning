@@ -1,4 +1,4 @@
-package kr.sesac.wordcounter.analysis;
+package kr.sesac.wordcounter.analysis.result;
 
 public record FileAnalysisSummary(
     int attemptedCount,
