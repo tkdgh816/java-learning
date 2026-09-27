@@ -25,13 +25,21 @@ public class Analyzer {
     private final AnalysisSummary analysisSummary;
     private final List<FileAnalysisFailure> failures = new ArrayList<>();
 
-    public Analyzer(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException {
+    public static Analyzer analyze(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException{
+        return new Analyzer(pathString, tokenizer, repository, analysisMode);
+    }
+
+    private Analyzer(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException {
         if (tokenizer == null) {
             throw new IllegalArgumentException("tokenizer는 null일 수 없습니다.");
         }
 
         if (repository == null) {
             throw new IllegalArgumentException("repository null일 수 없습니다.");
+        }
+
+        if (analysisMode == null) {
+            throw new IllegalArgumentException("analysisMode는 null일 수 없습니다.");
         }
 
         Path inputPath;

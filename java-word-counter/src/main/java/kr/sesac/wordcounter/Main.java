@@ -1,21 +1,22 @@
 package kr.sesac.wordcounter;
 
-import kr.sesac.wordcounter.analysis.*;
+import kr.sesac.wordcounter.analysis.AnalysisMode;
+import kr.sesac.wordcounter.analysis.Analyzer;
 import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
 import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
 import kr.sesac.wordcounter.model.TokenCount;
-import kr.sesac.wordcounter.repository.*;
-import kr.sesac.wordcounter.text.tokenizer.*;
+import kr.sesac.wordcounter.report.ReportWriter;
+import kr.sesac.wordcounter.repository.InMemoryRepository;
+import kr.sesac.wordcounter.repository.TokenCountRepository;
+import kr.sesac.wordcounter.text.tokenizer.SimpleTokenizer;
+import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
 
-/*
+/* 분석 경로
 samples/equivalent
 samples/edge
 samples/invalid
@@ -37,7 +38,7 @@ public class Main {
     private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.FIXED_THREAD_POOL;
     private static final Scanner scanner = new Scanner(System.in);
 
-    private static TokenCountRepository createRepository(){
+    private static TokenCountRepository createRepository() {
         return new InMemoryRepository();
     }
 
@@ -48,7 +49,7 @@ public class Main {
 
             switch (menu) {
                 case 1 -> {
-                    analyzer = getAnalyzer();
+                    analyzer = createAnalyzer();
                     printSummary(true);
                 }
                 case 2 -> printTopWords();
@@ -96,75 +97,59 @@ public class Main {
         }
     }
 
-    private static boolean validateAnalysis() {
-        if (analyzer == null) {
-            System.out.println("분석을 먼저 해 주세요.");
-            System.out.println();
-            return false;
-        }
-
-        return true;
-    }
-
-    private static boolean validateAnalyzerResult() {
-        if (!validateAnalysis()) {
-            return false;
-        }
-
-        if (!analyzer.hasSuccessfulFiles()) {
-            System.out.println("모든 파일 분석에 실패했습니다.");
-            System.out.println();
-            return false;
-        }
-
-        return true;
-    }
-
-    private static void printSummary(boolean containsFailures) {
-        if (!validateAnalysis()) {
-            return;
-        }
-
-        AnalysisSummary result = analyzer.getSummary();
-        StringBuilder summary = new StringBuilder();
-
-        if (containsFailures) {
-            for (FileAnalysisFailure failure : result.failures()) {
-                summary.append(String.format("파일 분석 실패: %s%n", failure.filePath()));
-                summary.append(String.format("원인: %s%n%n", failure.reason()));
-            }
-        }
-
-        summary.append(String.format("입력: %s%n", result.inputPath()));
-        summary.append(String.format("파일: 시도 %d개 / 성공 %d개 / 실패 %d개 / 건너뜀 %d개%n",
-                result.fileSummary().attemptedCount(),
-                result.fileSummary().successfulCount(),
-                result.fileSummary().failedCount(),
-                result.fileSummary().skippedCount()));
-        summary.append(String.format("전체 단어: %d개 / 서로 다른 단어: %d개%n",
-                result.wordSummary().totalCount(),
-                result.wordSummary().uniqueCount()));
-        summary.append(String.format("처리 시간: %dms%n", result.elapsedMilliseconds()));
-
-        System.out.println(summary);
-    }
-
-    private static Analyzer getAnalyzer() {
+    private static Analyzer createAnalyzer() {
         while (true) {
             try {
                 System.out.print("파일 또는 폴더 경로: ");
                 String pathString = scanner.nextLine().strip();
-                return new Analyzer(pathString, TOKENIZER, createRepository(), ANALYSIS_MODE);
+                return Analyzer.analyze(pathString, TOKENIZER, createRepository(), ANALYSIS_MODE);
             } catch (IOException | IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
         }
     }
 
+    private static boolean isAnalysisInvalid() {
+        if (analyzer == null) {
+            System.out.println("분석을 먼저 해 주세요.");
+            System.out.println();
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean isAnalysisResultInvalid() {
+        if (isAnalysisInvalid()) {
+            return true;
+        }
+
+        if (!analyzer.hasSuccessfulFiles()) {
+            System.out.println("모든 파일 분석에 실패했습니다.");
+            System.out.println();
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void printSummary(boolean containsFailures) {
+        if (isAnalysisInvalid()) {
+            return;
+        }
+
+        AnalysisSummary summary = analyzer.getSummary();
+        if (containsFailures) {
+            System.out.println(ReportWriter.generateFailureSummary(summary.failures()));
+        }
+
+        System.out.println(ReportWriter.generateAnalysisSummary(summary));
+    }
+
     private static final int DEFAULT_TOP_WORD_COUNT = 10;
 
     private static void printTopWords() {
-        if (!validateAnalyzerResult()) {
+        if (isAnalysisResultInvalid()) {
             return;
         }
 
@@ -193,7 +178,7 @@ public class Main {
     }
 
     private static void findWord() {
-        if (!validateAnalyzerResult()) {
+        if (isAnalysisResultInvalid()) {
             return;
         }
 
@@ -216,20 +201,14 @@ public class Main {
     private static final Path OUTPUT_PATH = Path.of("out/counts.tsv");
 
     private static void saveResults() {
-        if (!validateAnalyzerResult()) {
+        if (isAnalysisResultInvalid()) {
             return;
         }
 
         try {
-            Files.createDirectories(OUTPUT_PATH.getParent());
-            try (BufferedWriter writer = Files.newBufferedWriter(OUTPUT_PATH, StandardCharsets.UTF_8)) {
-                List<TokenCount> tokenCounts = analyzer.getAllWordsSorted();
-                writer.write("word\tcount\n");
-                for (TokenCount tokenCount : tokenCounts) {
-                    writer.write(String.format("%s\t%d%n", tokenCount.token(), tokenCount.count()));
-                }
-                System.out.printf("전체 결과 %d개 단어를 %s에 저장했습니다.%n", tokenCounts.size(), OUTPUT_PATH);
-            }
+            List<TokenCount> tokenCounts = analyzer.getAllWordsSorted();
+            ReportWriter.saveAsFile(OUTPUT_PATH, tokenCounts);
+            System.out.printf("전체 결과 %d개 단어를 %s에 저장했습니다.%n", tokenCounts.size(), OUTPUT_PATH);
         } catch (IOException e) {
             System.out.println("결과를 저장하지 못했습니다: " + e.getMessage());
         }
