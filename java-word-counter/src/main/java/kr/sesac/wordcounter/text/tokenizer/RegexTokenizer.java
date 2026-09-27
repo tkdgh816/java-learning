@@ -1,8 +1,7 @@
 package kr.sesac.wordcounter.text.tokenizer;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,9 +13,7 @@ public class RegexTokenizer implements TextTokenizer {
     private static final Pattern NUMERIC_PATTERN = Pattern.compile("[0-9]+");
 
     @Override
-    public List<String> tokenize(String text) {
-        List<String> tokens = new ArrayList<>();
-
+    public void tokenize(String text, Consumer<String> consumer) {
         // 영어, 한글, 숫자로만 이루어진 토큰
         Matcher tokenMatcher = TOKEN_PATTERN.matcher(text);
         while (tokenMatcher.find()) {
@@ -24,10 +21,8 @@ public class RegexTokenizer implements TextTokenizer {
 
             // 숫자만으로 이루어진 토큰은 배제
             if (!NUMERIC_PATTERN.matcher(token).matches()) {
-                tokens.add(token.toLowerCase(Locale.ROOT));
+                consumer.accept(token.toLowerCase(Locale.ROOT));
             }
         }
-
-        return tokens;
     }
 }

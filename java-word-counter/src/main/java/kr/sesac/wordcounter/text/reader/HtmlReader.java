@@ -30,6 +30,6 @@ public class HtmlReader implements TextReader {
         Element element = matches.getFirst();
         element.select(EXCLUDED_SELECTORS).remove();
 
-        tokenizer.tokenize(element.text()).forEach(tokenConsumer);
+        tokenizer.tokenize(element.text(), tokenConsumer);
     }
 }

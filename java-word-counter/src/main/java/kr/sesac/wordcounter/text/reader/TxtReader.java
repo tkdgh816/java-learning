@@ -17,7 +17,7 @@ public class TxtReader implements TextReader {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                tokenizer.tokenize(line).forEach(tokenConsumer);
+                tokenizer.tokenize(line, tokenConsumer);
             }
         }
     }

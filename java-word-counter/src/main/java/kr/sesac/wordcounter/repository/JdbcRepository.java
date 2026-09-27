@@ -12,7 +12,13 @@ public class JdbcRepository implements TokenCountRepository {
     private static final String USER = "wordcount";
     private static final String PASSWORD = "wordcount";
 
-    public JdbcRepository() {
+    private JdbcRepository() {
+    }
+
+    public static JdbcRepository createForNewAnalysis() {
+        JdbcRepository repository = new JdbcRepository();
+        repository.truncateTables();
+        return repository;
     }
 
     public void checkConnection() {
@@ -42,6 +48,11 @@ public class JdbcRepository implements TokenCountRepository {
     }
 
     @Override
+    public void addAll(List<String> tokens) {
+
+    }
+
+    @Override
     public void addAll(Collection<TokenCount> tokenCounts) {
 
     }
@@ -59,5 +70,61 @@ public class JdbcRepository implements TokenCountRepository {
     @Override
     public List<TokenCount> findAllSorted() {
         return List.of();
+    }
+
+    private void addAllTest1(List<String> tokens) {
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement selectStatement = connection.prepareStatement(
+                    "SELECT count FROM word_counts WHERE word = ?");
+                 PreparedStatement updateStatement = connection.prepareStatement(
+                         "UPDATE word_counts SET count = count + 1 WHERE word = ?");
+                 PreparedStatement insertStatement = connection.prepareStatement(
+                         "INSERT INTO word_counts (word, count) VALUES (?, 1)")) {
+                for (String token : tokens) {
+                    selectStatement.setString(1, token);
+                    try (ResultSet rs = selectStatement.executeQuery()) {
+                        if (rs.next()) {
+                            updateStatement.setString(1, token);
+                            updateStatement.executeUpdate();
+                        } else {
+                            insertStatement.setString(1, token);
+                            insertStatement.executeUpdate();
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addAllTest2(List<String> tokens) {
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO word_counts (word, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1")) {
+                for (String token : tokens) {
+                    statement.setString(1, token);
+                    statement.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addAllTest3(List<String> tokens) {
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO word_counts (word, count) VALUES (?, 1) ON DUPLICATE KEY UPDATE count = count + 1")) {
+                for (String token : tokens) {
+                    statement.setString(1, token);
+                    statement.executeUpdate();
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -46,7 +46,7 @@ public abstract class DelimitedTableReader implements TextReader {
                 }
 
                 for (Integer targetHeaderIndex : targetHeaderIndexes) {
-                    tokenizer.tokenize(record.get(targetHeaderIndex)).forEach(tokenConsumer);
+                    tokenizer.tokenize(record.get(targetHeaderIndex), tokenConsumer);
                 }
             }
         } catch (UncheckedIOException | IllegalArgumentException e) {

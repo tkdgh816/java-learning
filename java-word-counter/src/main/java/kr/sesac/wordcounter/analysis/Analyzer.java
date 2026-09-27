@@ -1,6 +1,9 @@
 package kr.sesac.wordcounter.analysis;
 
-import kr.sesac.wordcounter.analysis.result.*;
+import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
+import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
+import kr.sesac.wordcounter.analysis.result.FileAnalysisSummary;
+import kr.sesac.wordcounter.analysis.result.WordAnalysisSummary;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.repository.TokenCountRepository;
 import kr.sesac.wordcounter.text.reader.TextReader;
@@ -35,7 +38,7 @@ public class Analyzer {
         }
 
         if (repository == null) {
-            throw new IllegalArgumentException("repository null일 수 없습니다.");
+            throw new IllegalArgumentException("repository는 null일 수 없습니다.");
         }
 
         if (analysisMode == null) {
@@ -192,7 +195,8 @@ public class Analyzer {
 
     // 특정 단어 빈도 수 검색
     public TokenCount findByWord(String word) {
-        List<String> filteredTokens = tokenizer.tokenize(word);
+        List<String> filteredTokens = new ArrayList<>();
+        tokenizer.tokenize(word, filteredTokens::add);
 
         if (filteredTokens.size() != 1) {
             throw new IllegalArgumentException("단어 하나를 입력하세요.");

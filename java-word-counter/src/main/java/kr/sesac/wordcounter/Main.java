@@ -3,11 +3,9 @@ package kr.sesac.wordcounter;
 import kr.sesac.wordcounter.analysis.AnalysisMode;
 import kr.sesac.wordcounter.analysis.Analyzer;
 import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
-import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.report.ReportWriter;
-import kr.sesac.wordcounter.repository.InMemoryRepository;
-import kr.sesac.wordcounter.repository.TokenCountRepository;
+import kr.sesac.wordcounter.repository.RepositoryKind;
 import kr.sesac.wordcounter.text.tokenizer.SimpleTokenizer;
 import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
@@ -36,11 +34,8 @@ public class Main {
     private static Analyzer analyzer;
     private static final TextTokenizer TOKENIZER = new SimpleTokenizer();
     private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.FIXED_THREAD_POOL;
+    private static final RepositoryKind REPOSITORY_KIND = RepositoryKind.IN_MEMORY;
     private static final Scanner scanner = new Scanner(System.in);
-
-    private static TokenCountRepository createRepository() {
-        return new InMemoryRepository();
-    }
 
     public static void main(String[] args) {
         printMenu();
@@ -102,7 +97,7 @@ public class Main {
             try {
                 System.out.print("파일 또는 폴더 경로: ");
                 String pathString = scanner.nextLine().strip();
-                return Analyzer.analyze(pathString, TOKENIZER, createRepository(), ANALYSIS_MODE);
+                return Analyzer.analyze(pathString, TOKENIZER, REPOSITORY_KIND.createForNewAnalysis(), ANALYSIS_MODE);
             } catch (IOException | IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }

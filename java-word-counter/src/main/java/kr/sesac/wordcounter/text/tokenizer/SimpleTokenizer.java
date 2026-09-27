@@ -1,14 +1,11 @@
 package kr.sesac.wordcounter.text.tokenizer;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public class SimpleTokenizer implements TextTokenizer {
     @Override
-    public List<String> tokenize(String text) {
-        List<String> tokens = new ArrayList<>();
-
+    public void tokenize(String text, Consumer<String> consumer) {
         int startIndex = 0;
         boolean containsLetter = false;
 
@@ -25,7 +22,7 @@ public class SimpleTokenizer implements TextTokenizer {
             }
 
             if (containsLetter) {
-                tokens.add(text.substring(startIndex, i).toLowerCase(Locale.ROOT));
+                consumer.accept(text.substring(startIndex, i).toLowerCase(Locale.ROOT));
             }
 
             startIndex = i + 1;
@@ -34,10 +31,8 @@ public class SimpleTokenizer implements TextTokenizer {
 
 
         if (containsLetter) {
-            tokens.add(text.substring(startIndex).toLowerCase(Locale.ROOT));
+            consumer.accept(text.substring(startIndex).toLowerCase(Locale.ROOT));
         }
-
-        return tokens;
     }
 
     private boolean isNumber(char character) {
