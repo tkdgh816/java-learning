@@ -13,13 +13,6 @@ public class InMemoryRepository implements TokenCountRepository {
     }
 
     @Override
-    public void addAll(List<String> tokens) {
-        for (String token : tokens) {
-            countsByToken.put(token, countsByToken.getOrDefault(token, 0L) + 1);
-        }
-    }
-
-    @Override
     public void addAll(Collection<TokenCount> tokenCounts) {
         for (TokenCount tokenCount : tokenCounts) {
             String token = tokenCount.token();

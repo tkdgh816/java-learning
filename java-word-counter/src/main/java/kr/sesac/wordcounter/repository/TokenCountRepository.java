@@ -12,11 +12,6 @@ public interface TokenCountRepository {
     long getUniqueCount();
 
     /**
-     * 토큰을 하나씩 전체 결과에 추가합니다.
-     */
-    void addAll(List<String> tokens);
-
-    /**
      * 집계 결과를 전체 결과에 추가합니다.
      */
     void addAll(Collection<TokenCount> tokenCounts);
