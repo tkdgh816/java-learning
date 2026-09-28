@@ -5,6 +5,7 @@ import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
 import kr.sesac.wordcounter.analysis.result.FileAnalysisSummary;
 import kr.sesac.wordcounter.analysis.result.WordAnalysisSummary;
 import kr.sesac.wordcounter.model.TokenCount;
+import kr.sesac.wordcounter.repository.RepositoryException;
 import kr.sesac.wordcounter.repository.TokenCountRepository;
 import kr.sesac.wordcounter.text.reader.TextReader;
 import kr.sesac.wordcounter.text.reader.TextReaderKind;
@@ -28,11 +29,11 @@ public class Analyzer implements TokenAnalyzer {
     private final AnalysisSummary analysisSummary;
     private final List<FileAnalysisFailure> failures = new ArrayList<>();
 
-    public static Analyzer analyze(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException{
+    public static Analyzer analyze(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException, AnalysisException, RepositoryException {
         return new Analyzer(pathString, tokenizer, repository, analysisMode);
     }
 
-    private Analyzer(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException {
+    private Analyzer(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException, AnalysisException, RepositoryException {
         if (tokenizer == null) {
             throw new IllegalArgumentException("tokenizer는 null일 수 없습니다.");
         }
@@ -86,7 +87,10 @@ public class Analyzer implements TokenAnalyzer {
         }
 
         this.tokenizer = tokenizer;
+
+        // 새로 입력한 경로가 잘못되거나 지원 파일이 없을 때 저장소를 초기화하지 않음
         this.repository = repository;
+        repository.clear();
 
 
         long elapsedNanoTime = System.nanoTime();
@@ -131,7 +135,7 @@ public class Analyzer implements TokenAnalyzer {
 
     private static final int MAX_THREAD_COUNT = 4;
 
-    private void analyzeFixedThreadPool(Map<Path, TextReaderKind> readerKindsByPath) throws IOException {
+    private void analyzeFixedThreadPool(Map<Path, TextReaderKind> readerKindsByPath) throws AnalysisException {
         // 파일 경로와 파일 분석 결과
         Map<Path, Future<FileTokenCounter>> futuresByFilePath = new HashMap<>();
 
@@ -161,16 +165,16 @@ public class Analyzer implements TokenAnalyzer {
                 integrate(fileTokenCounter);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException();
+                throw new AnalysisException("분석 작업이 중단되었습니다.", e);
             } catch (ExecutionException e) {
                 // 개별 파일 분석 실패 시 실패 목록에 추가
                 if (e.getCause() instanceof IOException ioException) {
                     failures.add(new FileAnalysisFailure(filePath, ioException.getMessage()));
                     continue;
                 }
-                throw new IOException("분석 작업 실패: " + e.getCause().getMessage());
+                throw new AnalysisException("분석 작업이 실패했습니다.", e.getCause());
             } catch (CancellationException e) {
-                throw new IOException("분석 작업 취소");
+                throw new AnalysisException("분석 작업이 취소되었습니다.", e);
             }
         }
     }
@@ -184,19 +188,16 @@ public class Analyzer implements TokenAnalyzer {
         }
     }
 
-    // 지정된 개수의 상위 단어 목록 반환
     @Override
     public List<TokenCount> getTopWords(int limit) {
         return repository.findTop(limit);
     }
 
-    // 상위 단어들로 정렬된 모든 단어 목록 반환
     @Override
     public List<TokenCount> getAllWordsSorted() {
         return repository.findAllSorted();
     }
 
-    // 특정 단어 빈도 수 검색
     @Override
     public TokenCount findByWord(String word) {
         List<String> filteredTokens = new ArrayList<>();
@@ -210,7 +211,6 @@ public class Analyzer implements TokenAnalyzer {
         return repository.findByToken(targetWord);
     }
 
-    // 분석 요약 반환
     @Override
     public AnalysisSummary getSummary() {
         return analysisSummary;

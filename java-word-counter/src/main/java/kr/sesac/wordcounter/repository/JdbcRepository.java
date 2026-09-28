@@ -5,6 +5,7 @@ import kr.sesac.wordcounter.model.TokenCount;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 public class JdbcRepository implements TokenCountRepository {
@@ -13,13 +14,12 @@ public class JdbcRepository implements TokenCountRepository {
     private static final String USER = "wordcount";
     private static final String PASSWORD = "wordcount";
 
-    private JdbcRepository() {
+    public JdbcRepository() {
     }
 
-    public static JdbcRepository createForNewAnalysis() {
-        JdbcRepository repository = new JdbcRepository();
-        repository.truncateTables();
-        return repository;
+    @Override
+    public void clear() {
+        truncateTables();
     }
 
     public void checkConnection() {
@@ -29,17 +29,22 @@ public class JdbcRepository implements TokenCountRepository {
             rs.next();
             System.out.println("연결 성공. 저장된 단어 " + rs.getLong(1) + "개");
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("데이터베이스 연결 상태를 확인하지 못했습니다.", e);
         }
     }
 
-    public void truncateTables() {
+    /**
+     * 새 분석을 위해 단어 집계 테이블을 테이블을 초기화합니다.
+     *
+     * @throws RepositoryException 테이블을 초기화하지 못함
+     */
+    private void truncateTables() {
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              Statement statement = connection.createStatement()) {
             statement.executeUpdate("TRUNCATE TABLE word_counts");
             statement.executeUpdate("TRUNCATE TABLE tokens");
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("테이블을 초기화하지 못했습니다.", e);
         }
     }
 
@@ -51,7 +56,7 @@ public class JdbcRepository implements TokenCountRepository {
             rs.next();
             return rs.getLong(1);
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("서로 다른 단어의 개수를 조회하지 못했습니다.", e);
         }
     }
 
@@ -72,12 +77,16 @@ public class JdbcRepository implements TokenCountRepository {
             statement.executeBatch();
             connection.commit();
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("단어 집계 결과를 저장하지 못했습니다.", e);
         }
     }
 
     @Override
     public List<TokenCount> findTop(int limit) {
+        if (limit < 0) {
+            throw new IllegalArgumentException("limit은 0 이상이어야 합니다.");
+        }
+
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT word, count
@@ -94,12 +103,16 @@ public class JdbcRepository implements TokenCountRepository {
                 return tokenCounts;
             }
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException(String.format("상위 %d개의 단어 집계 결과를 조회하지 못했습니다.", limit), e);
         }
     }
 
     @Override
     public TokenCount findByToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("토큰이 유효하지 않습니다.");
+        }
+
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement statement = connection.prepareStatement("""
                      SELECT count
@@ -114,7 +127,7 @@ public class JdbcRepository implements TokenCountRepository {
                 return new TokenCount(token, 0L);
             }
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException(String.format("토큰 '%s'의 집계 결과를 조회하지 못했습니다.", token), e);
         }
     }
 
@@ -133,7 +146,7 @@ public class JdbcRepository implements TokenCountRepository {
             }
             return tokenCounts;
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("정렬된 전체 단어 집계 결과를 조회하지 못했습니다.", e);
         }
     }
 }

@@ -2,7 +2,10 @@ package kr.sesac.wordcounter.repository.test;
 
 import kr.sesac.wordcounter.repository.RepositoryException;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class JdbcTestSession implements AutoCloseable {
     private final Connection connection;
@@ -78,7 +81,7 @@ public class JdbcTestSession implements AutoCloseable {
             }
             connection.close();
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("JDBC 세션을 종료하는 중 리소스 정리 또는 롤백에 실패했습니다.", e);
         }
     }
 
@@ -103,7 +106,7 @@ public class JdbcTestSession implements AutoCloseable {
                 }
             }
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("토큰을 조회하거나 업데이트하지 못했습니다.", e);
         }
     }
 
@@ -112,7 +115,7 @@ public class JdbcTestSession implements AutoCloseable {
             upsertStatement.setString(1, token);
             upsertStatement.executeUpdate();
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("토큰을 조회하거나 업데이트하지 못했습니다.", e);
         }
     }
 
@@ -128,7 +131,7 @@ public class JdbcTestSession implements AutoCloseable {
                 pending = 0;
             }
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("토큰을 배치에 추가하거나 배치를 실행하지 못했습니다.", e);
         }
     }
 
@@ -148,7 +151,7 @@ public class JdbcTestSession implements AutoCloseable {
 
             completed = true;
         } catch (SQLException e) {
-            throw new RepositoryException("", e);
+            throw new RepositoryException("배치 실행 또는 커밋을 완료하지 못했습니다.", e);
         }
     }
 }

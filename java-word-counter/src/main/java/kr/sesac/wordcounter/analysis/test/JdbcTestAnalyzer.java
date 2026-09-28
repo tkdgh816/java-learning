@@ -27,14 +27,14 @@ import java.util.function.Consumer;
 
 public class JdbcTestAnalyzer implements TokenAnalyzer {
     private final TextTokenizer tokenizer;
-    private final JdbcTestRepository repository;
+    private static final JdbcTestRepository REPOSITORY = new JdbcTestRepository();
     private final DbAggregationMode dbAggregationMode;
     private long totalTokenCount;    // 전체 분석 단어 횟수
     private int successfulFileCount;   // 지원 파일 분석 성공 횟수
     private final AnalysisSummary analysisSummary;
     private final List<FileAnalysisFailure> failures = new ArrayList<>();
 
-    public static JdbcTestAnalyzer analyze(String pathString, TextTokenizer tokenizer,  DbAggregationMode dbAggregationMode,AnalysisMode analysisMode) throws IOException {
+    public static JdbcTestAnalyzer analyze(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, AnalysisMode analysisMode) throws IOException {
         return new JdbcTestAnalyzer(pathString, tokenizer, dbAggregationMode, analysisMode);
     }
 
@@ -93,7 +93,7 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
 
         this.tokenizer = tokenizer;
         this.dbAggregationMode = dbAggregationMode;
-        this.repository = JdbcTestRepository.createForNewAnalysis();
+        REPOSITORY.clear();
 
         long elapsedNanoTime = System.nanoTime();
         // 분석 모드에 따라 분석 시작 (순차/병렬 처리)
@@ -105,7 +105,7 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
         elapsedNanoTime = System.nanoTime() - elapsedNanoTime;
 
         FileAnalysisSummary fileSummary = new FileAnalysisSummary(readerKindsByPath.size(), successfulFileCount, skippedFileCount);
-        WordAnalysisSummary wordSummary = new WordAnalysisSummary(totalTokenCount, repository.getUniqueCount());
+        WordAnalysisSummary wordSummary = new WordAnalysisSummary(totalTokenCount, REPOSITORY.getUniqueCount());
         analysisSummary = new AnalysisSummary(
                 inputPath,
                 fileSummary,
@@ -145,12 +145,12 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
             TextReader textReader = entry.getValue().createReader();
 
             // 파일을 분석하고 결과를 집계, 실패 시 실패 목록에 추가
-            try (var session = repository.createSession(dbAggregationMode)) {
+            try (var session = REPOSITORY.createSession(dbAggregationMode)) {
                 TokenConsumer tokenConsumer = new TokenConsumer(session::add);
                 textReader.readTokens(filePath, tokenizer, tokenConsumer);
+                session.complete();
                 totalTokenCount += tokenConsumer.getCount();
                 successfulFileCount++;
-                session.complete();
             } catch (RepositoryException | IOException e) {
                 failures.add(new FileAnalysisFailure(filePath, e.getMessage()));
             }
@@ -171,7 +171,7 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
 
                 // 개별 파일 분석
                 Future<Long> future = executorService.submit(() -> {
-                    try (var session = repository.createSession(dbAggregationMode)) {
+                    try (var session = REPOSITORY.createSession(dbAggregationMode)) {
                         TextReader textReader = entry.getValue().createReader();
                         TokenConsumer tokenConsumer = new TokenConsumer(session::add);
                         textReader.readTokens(filePath, tokenizer, tokenConsumer);
@@ -209,19 +209,16 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
         }
     }
 
-    // 지정된 개수의 상위 단어 목록 반환
     @Override
     public List<TokenCount> getTopWords(int limit) {
-        return repository.findTop(limit);
+        return REPOSITORY.findTop(limit);
     }
 
-    // 상위 단어들로 정렬된 모든 단어 목록 반환
     @Override
     public List<TokenCount> getAllWordsSorted() {
-        return repository.findAllSorted();
+        return REPOSITORY.findAllSorted();
     }
 
-    // 특정 단어 빈도 수 검색
     @Override
     public TokenCount findByWord(String word) {
         List<String> filteredTokens = new ArrayList<>();
@@ -232,10 +229,9 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
         }
 
         String targetWord = filteredTokens.getFirst();
-        return repository.findByToken(targetWord);
+        return REPOSITORY.findByToken(targetWord);
     }
 
-    // 분석 요약 반환
     @Override
     public AnalysisSummary getSummary() {
         return analysisSummary;

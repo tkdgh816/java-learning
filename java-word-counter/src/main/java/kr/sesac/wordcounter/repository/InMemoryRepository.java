@@ -8,6 +8,11 @@ public class InMemoryRepository implements TokenCountRepository {
     private final Map<String, Long> countsByToken = new HashMap<>();
 
     @Override
+    public void clear(){
+        countsByToken.clear();
+    }
+
+    @Override
     public long getUniqueCount() {
         return countsByToken.size();
     }
@@ -33,6 +38,10 @@ public class InMemoryRepository implements TokenCountRepository {
 
     @Override
     public List<TokenCount> findTop(int limit) {
+        if (limit < 0) {
+            throw new IllegalArgumentException("limit은 0 이상이어야 합니다.");
+        }
+
         return countsByToken.entrySet().stream()
                 .sorted(TOKEN_COUNT_COMPARATOR)
                 .limit(limit)
@@ -42,6 +51,10 @@ public class InMemoryRepository implements TokenCountRepository {
 
     @Override
     public TokenCount findByToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("토큰이 유효하지 않습니다.");
+        }
+
         return new TokenCount(token, countsByToken.getOrDefault(token, 0L));
     }
 
