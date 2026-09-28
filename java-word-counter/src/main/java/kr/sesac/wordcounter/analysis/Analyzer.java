@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
-public class Analyzer {
+public class Analyzer implements TokenAnalyzer {
     private final TextTokenizer tokenizer;
     private final TokenCountRepository repository;
     private long totalTokenCount;    // 전체 분석 단어 횟수
@@ -108,6 +108,7 @@ public class Analyzer {
                 List.copyOf(failures));
     }
 
+    @Override
     public boolean hasSuccessfulFiles() {
         return successfulFileCount > 0;
     }
@@ -184,16 +185,19 @@ public class Analyzer {
     }
 
     // 지정된 개수의 상위 단어 목록 반환
+    @Override
     public List<TokenCount> getTopWords(int limit) {
         return repository.findTop(limit);
     }
 
     // 상위 단어들로 정렬된 모든 단어 목록 반환
+    @Override
     public List<TokenCount> getAllWordsSorted() {
         return repository.findAllSorted();
     }
 
     // 특정 단어 빈도 수 검색
+    @Override
     public TokenCount findByWord(String word) {
         List<String> filteredTokens = new ArrayList<>();
         tokenizer.tokenize(word, filteredTokens::add);
@@ -207,6 +211,7 @@ public class Analyzer {
     }
 
     // 분석 요약 반환
+    @Override
     public AnalysisSummary getSummary() {
         return analysisSummary;
     }

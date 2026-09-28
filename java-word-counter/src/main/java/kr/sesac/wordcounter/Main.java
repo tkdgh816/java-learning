@@ -2,10 +2,13 @@ package kr.sesac.wordcounter;
 
 import kr.sesac.wordcounter.analysis.AnalysisMode;
 import kr.sesac.wordcounter.analysis.Analyzer;
+import kr.sesac.wordcounter.analysis.TokenAnalyzer;
 import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
+import kr.sesac.wordcounter.analysis.test.JdbcTestAnalyzer;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.report.ReportWriter;
 import kr.sesac.wordcounter.repository.RepositoryKind;
+import kr.sesac.wordcounter.repository.test.DbAggregationMode;
 import kr.sesac.wordcounter.text.tokenizer.SimpleTokenizer;
 import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
@@ -20,10 +23,13 @@ samples/edge
 samples/invalid
 data/chatbot
 data/klue-ynat
+data/klue-ynat/news-1000.csv
+data/klue-ynat/news-10000.csv
 data/klue-ynat/formats
 data/klue-ynat/many
 data/licenses
 data/performance
+data/performance/news-repeat-8.csv
 data/performance/many
 data/local/perf-64
 data/local/perf-64/news-repeat-64.csv
@@ -31,11 +37,26 @@ data/local/perf-64/many
 */
 
 public class Main {
-    private static Analyzer analyzer;
     private static final TextTokenizer TOKENIZER = new SimpleTokenizer();
-    private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.FIXED_THREAD_POOL;
-    private static final RepositoryKind REPOSITORY_KIND = RepositoryKind.IN_MEMORY;
+    private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.SEQUENTIAL;
+    private static final RepositoryKind REPOSITORY_KIND = RepositoryKind.JDBC;
+    private static final DbAggregationMode DB_AGGREGATION_MODE = DbAggregationMode.STAGE_4;
     private static final Scanner scanner = new Scanner(System.in);
+
+    private static TokenAnalyzer analyzer;
+
+    private static TokenAnalyzer createAnalyzer() {
+        while (true) {
+            try {
+                System.out.print("파일 또는 폴더 경로: ");
+                String pathString = scanner.nextLine().strip();
+                return Analyzer.analyze(pathString, TOKENIZER, REPOSITORY_KIND.createForNewAnalysis(), ANALYSIS_MODE);
+//                return JdbcTestAnalyzer.analyze(pathString, TOKENIZER, DB_AGGREGATION_MODE, ANALYSIS_MODE);
+            } catch (IOException | IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
 
     public static void main(String[] args) {
         printMenu();
@@ -89,18 +110,6 @@ public class Main {
             System.out.println("메뉴에 있는 번호를 선택하세요.");
             System.out.println();
             printMenu();
-        }
-    }
-
-    private static Analyzer createAnalyzer() {
-        while (true) {
-            try {
-                System.out.print("파일 또는 폴더 경로: ");
-                String pathString = scanner.nextLine().strip();
-                return Analyzer.analyze(pathString, TOKENIZER, REPOSITORY_KIND.createForNewAnalysis(), ANALYSIS_MODE);
-            } catch (IOException | IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-            }
         }
     }
 
