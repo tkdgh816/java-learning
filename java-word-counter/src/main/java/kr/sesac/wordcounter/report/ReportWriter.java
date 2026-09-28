@@ -39,7 +39,8 @@ public class ReportWriter {
     public static void saveAsFile(Path output, List<TokenCount> tokenCounts) throws IOException {
         Files.createDirectories(output.getParent());
         try (BufferedWriter writer = Files.newBufferedWriter(output, StandardCharsets.UTF_8)) {
-            writer.write("word\tcount\n");
+            writer.write("word\tcount");
+            writer.newLine();
             for (TokenCount tokenCount : tokenCounts) {
                 writer.write(String.format("%s\t%d%n", tokenCount.token(), tokenCount.count()));
             }
