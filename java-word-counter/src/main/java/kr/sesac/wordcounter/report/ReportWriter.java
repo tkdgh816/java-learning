@@ -3,6 +3,7 @@ package kr.sesac.wordcounter.report;
 import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
 import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
 import kr.sesac.wordcounter.model.TokenCount;
+import kr.sesac.wordcounter.text.writer.TsvWriter;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -12,7 +13,10 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class ReportWriter {
-    public static String generateFailureSummary(List<FileAnalysisFailure> failures){
+    private ReportWriter() {
+    }
+
+    public static String generateFailureSummary(List<FileAnalysisFailure> failures) {
         StringBuilder summary = new StringBuilder();
         for (FileAnalysisFailure failure : failures) {
             summary.append(String.format("파일 분석 실패: %s%n", failure.filePath()));
@@ -21,7 +25,7 @@ public class ReportWriter {
         return summary.toString();
     }
 
-    public static String generateAnalysisSummary(AnalysisSummary analysisSummary){
+    public static String generateAnalysisSummary(AnalysisSummary analysisSummary) {
         StringBuilder summary = new StringBuilder();
         summary.append(String.format("입력: %s%n", analysisSummary.inputPath()));
         summary.append(String.format("파일: 시도 %d개 / 성공 %d개 / 실패 %d개 / 건너뜀 %d개%n",
@@ -37,13 +41,6 @@ public class ReportWriter {
     }
 
     public static void saveAsFile(Path output, List<TokenCount> tokenCounts) throws IOException {
-        Files.createDirectories(output.getParent());
-        try (BufferedWriter writer = Files.newBufferedWriter(output, StandardCharsets.UTF_8)) {
-            writer.write("word\tcount");
-            writer.newLine();
-            for (TokenCount tokenCount : tokenCounts) {
-                writer.write(String.format("%s\t%d%n", tokenCount.token(), tokenCount.count()));
-            }
-        }
+        TsvWriter.save(output, TokenCount.class, tokenCounts, new String[]{"word", "count"});
     }
 }

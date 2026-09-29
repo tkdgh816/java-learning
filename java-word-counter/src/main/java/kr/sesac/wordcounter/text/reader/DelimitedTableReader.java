@@ -36,20 +36,31 @@ public abstract class DelimitedTableReader implements TextReader {
             Map<String, Integer> rawHeaderMap = parser.getHeaderMap();
             List<Integer> targetHeaderIndexes = getTargetHeaderIndexes(rawHeaderMap);
 
-            for (CSVRecord record : parser) {
-                // 레코드의 셀 수가 헤더와 다른 경우
-                if (record.size() != rawHeaderMap.size()) {
-                    throw new TextReaderException("레코드의 셀 수가 헤더와 다릅니다.");
-                }
+            try {
+                for (CSVRecord record : parser) {
+                    // 레코드의 셀 수가 헤더와 다른 경우
+                    if (record.size() != rawHeaderMap.size()) {
+                        throw new TextReaderException(
+                                String.format("[%d행] %d번째 레코드의 셀 수(%d)가 헤더(%d)와 다릅니다.",
+                                        parser.getCurrentLineNumber(),
+                                        record.getRecordNumber(),
+                                        record.size(),
+                                        rawHeaderMap.size()));
+                    }
 
-                for (Integer targetHeaderIndex : targetHeaderIndexes) {
-                    tokenizer.tokenize(record.get(targetHeaderIndex), tokenConsumer);
+                    for (Integer targetHeaderIndex : targetHeaderIndexes) {
+                        tokenizer.tokenize(record.get(targetHeaderIndex), tokenConsumer);
+                    }
                 }
+            } catch (UncheckedIOException e) {
+                throw new TextReaderException(
+                        String.format("[%d행] %d번째 레코드를 읽을 수 없습니다.",
+                                parser.getCurrentLineNumber(),
+                                parser.getRecordNumber() + 1),
+                        e);
             }
         } catch (IOException e) {
             throw new TextReaderException("문서를 읽을 수 없습니다.", e);
-        } catch (UncheckedIOException e) {
-            throw new TextReaderException("레코드를 읽을 수 없습니다.", e);
         }
     }
 
@@ -67,7 +78,7 @@ public abstract class DelimitedTableReader implements TextReader {
 
         // 입력 헤더와 일치하는 파일 헤더가 없는지 확인
         if (targetHeaderIndexes.size() != targetHeaderNames.size()) {
-            throw new TextReaderException("분석 열이 헤더에 없습니다.");
+            throw new TextReaderException(String.format("분석 열(%s)이 헤더에 없습니다.", targetHeaderNames));
         }
         return targetHeaderIndexes;
     }

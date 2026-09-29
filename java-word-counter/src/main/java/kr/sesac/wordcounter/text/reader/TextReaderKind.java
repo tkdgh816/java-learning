@@ -10,6 +10,8 @@ public enum TextReaderKind {
     TSV(() -> new TsvReader(List.of("document"))),
     HTML(() -> new HtmlReader("#content", "script, style, nav, header, footer"));
 
+    public static final String VERSION = "1.0";
+
     private final Supplier<TextReader> supplier;
 
     TextReaderKind(Supplier<TextReader> supplier) {

@@ -28,7 +28,7 @@ public class Main {
 
     // 심화 2번
     // 여러 파일 분석 모드 선택 (순차 처리 -> SEQUENTIAL, 병렬 처리 -> FIXED_THREAD_POOL)
-    private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.SEQUENTIAL;
+    private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.FIXED_THREAD_POOL;
 
     // 심화 7번
     // 단어별 횟수 저장 방식 선택 (메모리 -> IN_MEMORY, 데이터베이스 -> JDBC)
@@ -37,7 +37,7 @@ public class Main {
 
     // 입력 경로와 토크나이저, 저장 방식, 분석 모드 등을 받아서
     // 분석을 수행하고 분석 결과를 집계하는 객체
-    // 새 분석 시 createAnalyzer()에서 객체를 만들고 분석을 시작
+    // 새 분석 시 analyze()에서 객체를 만들고 분석을 시작
     private static TokenAnalyzer analyzer;
 
     // 심화 7번 1~4단계
@@ -52,39 +52,29 @@ public class Main {
 
             switch (menu) {
                 case 1 -> {
-                    try {
-                        analyzer = createAnalyzer();
-                        printSummary(true);
-                    } catch (AnalysisException | RepositoryException e) {
-                        analyzer = null;
-                        System.out.println("분석을 완료하지 못했습니다: " + e.getMessage());
-                    }
+                    System.out.println("[ 새 분석 시작 ]");
+                    analyze();
                 }
-                case 2 -> printTopWords();
-                case 3 -> findWord();
-                case 4 -> saveResults();
-                case 5 -> printSummary(false);
+                case 2 -> {
+                    System.out.println("[ 상위 N개 단어 보기 ]");
+                    printTopWords();
+                }
+                case 3 -> {
+                    System.out.println("[ 특정 단어 횟수 찾기 ]");
+                    findWord();
+                }
+                case 4 -> {
+                    System.out.println("[ 전체 결과 저장 ]");
+                    saveResults();
+                }
+                case 5 -> {
+                    System.out.println("[ 최근 분석 요약 ]");
+                    printSummary(false);
+                }
                 case 0 -> {
                     System.out.println("프로그램을 종료합니다.");
                     return;
                 }
-            }
-        }
-    }
-
-    private static TokenAnalyzer createAnalyzer() {
-        while (true) {
-            try {
-                System.out.print("파일 또는 폴더 경로: ");
-                String pathString = scanner.nextLine().strip();
-                return Analyzer.analyze(pathString, TOKENIZER, REPOSITORY, ANALYSIS_MODE);
-
-                // 심화 7번 1~4단계
-                // 1~4단계는 토큰 하나 혹은 아직 집계되지 않은 토큰 목록 단위로 DB에 저장하므로
-                // 파일별 토큰 집계 객체인 FileTokenCounter를 사용하는 Analyzer가 아닌 JdbcTestAnalyzer 사용
-//                 return JdbcTestAnalyzer.analyze(pathString, TOKENIZER, DB_AGGREGATION_MODE, ANALYSIS_MODE);
-            } catch (IOException | AnalysisException | RepositoryException | IllegalArgumentException e) {
-                System.out.println(e.getMessage());
             }
         }
     }
@@ -105,7 +95,10 @@ public class Main {
 
     private static int readMenu() {
         while (true) {
-            System.out.print("선택 > ");
+            if (analyzer != null) {
+                System.out.printf("최근 분석: %s%n", analyzer.getSummary().inputPath());
+            }
+            System.out.print("메뉴 선택 > ");
             String input = scanner.nextLine().strip();
             try {
                 int menu = Integer.parseInt(input);
@@ -116,9 +109,44 @@ public class Main {
                 // 번호가 아니므로 아래에서 다시 선택하도록 함
             }
 
-            System.out.println("메뉴에 있는 번호를 선택하세요.");
             System.out.println();
             printMenu();
+            System.out.println("메뉴에 있는 번호를 선택하세요.");
+        }
+    }
+
+    private static void analyze() {
+        while (true) {
+            try {
+                System.out.print("파일 또는 폴더 경로 (공백:취소) > ");
+                String pathString = scanner.nextLine().strip();
+
+                if (pathString.isEmpty()) {
+                    // 빈 입력 시 메뉴로 나가기
+                    System.out.println();
+                    return;
+                }
+
+                analyzer = Analyzer.analyze(pathString, TOKENIZER, REPOSITORY, ANALYSIS_MODE);
+
+                // 심화 7번 1~4단계
+                // 1~4단계는 토큰 하나 혹은 아직 집계되지 않은 토큰 목록 단위로 DB에 저장하므로
+                // 파일별 토큰 집계 객체인 FileTokenCounter를 사용하는 Analyzer가 아닌 JdbcTestAnalyzer 사용
+//                 analyzer = JdbcTestAnalyzer.analyze(pathString, TOKENIZER, DB_AGGREGATION_MODE, ANALYSIS_MODE);
+
+                printSummary(true);
+                return;
+            } catch (IOException | IllegalArgumentException e) {
+                // 입력에 문제가 있거나 지원하는 파일이 없을 때 -> 이전 결과 유지
+                System.out.println(e.getMessage());
+            } catch (AnalysisException | RepositoryException e) {
+                // 분석 시스템 자체가 실패하거나 저장소 오류가 발생했을 때:
+                // 저장소가 초기화되었거나 저장소에 일부 집계되었을 수 있음 -> 기존 결과 버림
+                // (분석을 완료했으나 모든 파일 실패한 상황은 이 경우에 포함되지 않음)
+                analyzer = null;
+                System.out.println("분석을 완료하지 못했습니다: " + e.getMessage());
+                return;
+            }
         }
     }
 
@@ -133,7 +161,7 @@ public class Main {
         return false;
     }
 
-    // 분석이 존재하고 분석이 성공했는지 확인
+    // 분석이 존재하고 모든 파일 분석이 성공했는지 확인
     private static boolean isAnalysisResultInvalid() {
         if (isAnalysisInvalid()) {
             return true;

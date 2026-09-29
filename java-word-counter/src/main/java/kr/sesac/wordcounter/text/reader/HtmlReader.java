@@ -33,7 +33,7 @@ public class HtmlReader implements TextReader {
 
             Elements match = document.select(targetEvaluator);
             if (match.size() != 1) {
-                throw new TextReaderException("요소가 없거나 여러 개입니다");
+                throw new TextReaderException(targetEvaluator + " 요소가 없거나 여러 개입니다");
             }
 
             // 원본에 영향을 주지 않도록 복사

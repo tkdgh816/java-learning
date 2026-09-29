@@ -6,7 +6,7 @@ import org.apache.commons.csv.DuplicateHeaderMode;
 import java.util.Collection;
 
 public class TsvReader extends DelimitedTableReader {
-    private static final CSVFormat FORMAT = CSVFormat.newFormat('\t').builder()
+    private static final CSVFormat FORMAT = CSVFormat.TDF.builder()
             .setHeader()
             .setSkipHeaderRecord(true)
             .setDuplicateHeaderMode(DuplicateHeaderMode.DISALLOW)
