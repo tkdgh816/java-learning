@@ -10,36 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class FileTokenCounter {
-    private final Path filePath;
-    private final TextReader textReader;
-    private final TextTokenizer tokenizer;
+public interface FileTokenCounter {
+    List<TokenCount> getTokenCounts();
 
-    private final Map<String, Long> countsByToken = new HashMap<>();
-    private long wordCount;
-
-    FileTokenCounter(Path filePath, TextReader textReader, TextTokenizer tokenizer) throws TextReaderException {
-        this.filePath = filePath;
-        this.textReader = textReader;
-        this.tokenizer = tokenizer;
-
-        analyze();
-    }
-
-    private void analyze() throws TextReaderException {
-        textReader.readTokens(filePath, tokenizer, token -> {
-            countsByToken.put(token, countsByToken.getOrDefault(token, 0L) + 1L);
-            wordCount++;
-        });
-    }
-
-    public List<TokenCount> getTokenCounts() {
-        return countsByToken.entrySet().stream()
-                .map(entry -> new TokenCount(entry.getKey(), entry.getValue()))
-                .toList();
-    }
-
-    public long getWordCount() {
-        return wordCount;
-    }
+    long getTotalTokenCount();
 }

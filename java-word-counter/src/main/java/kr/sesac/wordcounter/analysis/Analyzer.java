@@ -126,7 +126,7 @@ public class Analyzer implements TokenAnalyzer {
 
             // 파일을 분석하고 결과를 집계, 실패 시 실패 목록에 추가
             try {
-                FileTokenCounter fileTokenCounter = new FileTokenCounter(filePath, textReader, tokenizer);
+                FileTokenCounter fileTokenCounter = new SourceFileTokenCounter(filePath, textReader, tokenizer);
                 integrate(fileTokenCounter);
             } catch (TextReaderException e) {
                 failures.add(new FileAnalysisFailure(filePath, e.getMessage()));
@@ -148,7 +148,7 @@ public class Analyzer implements TokenAnalyzer {
 
                 // 개별 파일 분석
                 TextReader textReader = entry.getValue().createReader();
-                Future<FileTokenCounter> future = executorService.submit(() -> new FileTokenCounter(filePath, textReader, tokenizer));
+                Future<FileTokenCounter> future = executorService.submit(() -> new SourceFileTokenCounter(filePath, textReader, tokenizer));
 
                 futuresByFilePath.put(filePath, future);
             }
@@ -182,7 +182,7 @@ public class Analyzer implements TokenAnalyzer {
     private void integrate(FileTokenCounter fileTokenCounter) {
         if (fileTokenCounter != null) {
             repository.addAll(fileTokenCounter.getTokenCounts());
-            totalTokenCount += fileTokenCounter.getWordCount();
+            totalTokenCount += fileTokenCounter.getTotalTokenCount();
             successfulFileCount++;
         }
     }
