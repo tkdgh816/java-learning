@@ -8,6 +8,7 @@ import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
 import kr.sesac.wordcounter.analysis.test.JdbcTestAnalyzer;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.report.ReportWriter;
+import kr.sesac.wordcounter.repository.InMemoryRepository;
 import kr.sesac.wordcounter.repository.JdbcRepository;
 import kr.sesac.wordcounter.repository.RepositoryException;
 import kr.sesac.wordcounter.repository.TokenCountRepository;
@@ -27,12 +28,12 @@ public class Main {
 
     // 심화 2번
     // 여러 파일 분석 모드 선택 (순차 처리 -> SEQUENTIAL, 병렬 처리 -> FIXED_THREAD_POOL)
-    private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.FIXED_THREAD_POOL;
+    private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.SEQUENTIAL;
 
     // 심화 7번
     // 단어별 횟수 저장 방식 선택 (메모리 -> IN_MEMORY, 데이터베이스 -> JDBC)
-    // 새 분석을 시작할 때마다 clear() 기존 분석 내용을 초기화 후 분석
-    private static final TokenCountRepository REPOSITORY = new JdbcRepository();
+    // 새 분석을 시작할 때마다 clear() 호출하여 기존 분석 내용을 초기화 후 분석
+    private static final TokenCountRepository REPOSITORY = new InMemoryRepository();
 
     // 입력 경로와 토크나이저, 저장 방식, 분석 모드 등을 받아서
     // 분석을 수행하고 분석 결과를 집계하는 객체
@@ -80,9 +81,9 @@ public class Main {
 
                 // 심화 7번 1~4단계
                 // 1~4단계는 토큰 하나 혹은 아직 집계되지 않은 토큰 목록 단위로 DB에 저장하므로
-                // 파일 단위 집계를 제공 FileTokenCounter를 사용하는 Analyzer가 아닌 JdbcTestAnalyzer 사용
+                // 파일별 토큰 집계 객체인 FileTokenCounter를 사용하는 Analyzer가 아닌 JdbcTestAnalyzer 사용
 //                 return JdbcTestAnalyzer.analyze(pathString, TOKENIZER, DB_AGGREGATION_MODE, ANALYSIS_MODE);
-            } catch (IOException | IllegalArgumentException e) {
+            } catch (IOException | AnalysisException | RepositoryException | IllegalArgumentException e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -172,7 +173,9 @@ public class Main {
                 System.out.printf("몇 개를 볼까요? (기본 %d) > ", DEFAULT_TOP_WORD_COUNT);
                 String input = scanner.nextLine().strip();
 
+                // 입력이 빈 경우 기본값으로 처리함
                 int number = input.isBlank() ? DEFAULT_TOP_WORD_COUNT : Integer.parseInt(input);
+
                 if (number > 0) {
                     List<TokenCount> tokenCounts = analyzer.getTopWords(number);
                     for (int i = 0; i < tokenCounts.size(); i++) {
@@ -208,7 +211,7 @@ public class Main {
                 System.out.printf("%s: %d회%n", tokenCount.token(), tokenCount.count());
                 break;
             } catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
+                System.out.println("단어 하나를 입력하세요.");
             } catch (RepositoryException e) {
                 System.out.println("결과를 조회할 수 없습니다: " + e.getMessage());
                 break;

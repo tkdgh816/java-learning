@@ -2,7 +2,6 @@ package kr.sesac.wordcounter.text.reader;
 
 import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -16,5 +15,5 @@ public interface TextReader {
      * <p>같은 토큰이 여러 번 발견되면 발견된 횟수만큼 전달하며,
      * 토큰은 문서에서 발견된 순서대로 전달합니다.</p>
      */
-    void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer) throws IOException;
+    void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer);
 }

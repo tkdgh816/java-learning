@@ -8,6 +8,7 @@ import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.repository.RepositoryException;
 import kr.sesac.wordcounter.repository.TokenCountRepository;
 import kr.sesac.wordcounter.text.reader.TextReader;
+import kr.sesac.wordcounter.text.reader.TextReaderException;
 import kr.sesac.wordcounter.text.reader.TextReaderKind;
 import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
@@ -127,7 +128,7 @@ public class Analyzer implements TokenAnalyzer {
             try {
                 FileTokenCounter fileTokenCounter = new FileTokenCounter(filePath, textReader, tokenizer);
                 integrate(fileTokenCounter);
-            } catch (IOException e) {
+            } catch (TextReaderException e) {
                 failures.add(new FileAnalysisFailure(filePath, e.getMessage()));
             }
         }
@@ -146,10 +147,8 @@ public class Analyzer implements TokenAnalyzer {
                 Path filePath = entry.getKey();
 
                 // 개별 파일 분석
-                Future<FileTokenCounter> future = executorService.submit(() -> {
-                    TextReader textReader = entry.getValue().createReader();
-                    return new FileTokenCounter(filePath, textReader, tokenizer);
-                });
+                TextReader textReader = entry.getValue().createReader();
+                Future<FileTokenCounter> future = executorService.submit(() -> new FileTokenCounter(filePath, textReader, tokenizer));
 
                 futuresByFilePath.put(filePath, future);
             }
@@ -168,8 +167,8 @@ public class Analyzer implements TokenAnalyzer {
                 throw new AnalysisException("분석 작업이 중단되었습니다.", e);
             } catch (ExecutionException e) {
                 // 개별 파일 분석 실패 시 실패 목록에 추가
-                if (e.getCause() instanceof IOException ioException) {
-                    failures.add(new FileAnalysisFailure(filePath, ioException.getMessage()));
+                if (e.getCause() instanceof TextReaderException textReaderException) {
+                    failures.add(new FileAnalysisFailure(filePath, textReaderException.getMessage()));
                     continue;
                 }
                 throw new AnalysisException("분석 작업이 실패했습니다.", e.getCause());
@@ -204,11 +203,11 @@ public class Analyzer implements TokenAnalyzer {
         tokenizer.tokenize(word, filteredTokens::add);
 
         if (filteredTokens.size() != 1) {
-            throw new IllegalArgumentException("단어 하나를 입력하세요.");
+            throw new IllegalArgumentException("한 개의 단어여야 합니다.");
         }
 
-        String targetWord = filteredTokens.getFirst();
-        return repository.findByToken(targetWord);
+        String targetToken = filteredTokens.getFirst();
+        return repository.findByToken(targetToken);
     }
 
     @Override

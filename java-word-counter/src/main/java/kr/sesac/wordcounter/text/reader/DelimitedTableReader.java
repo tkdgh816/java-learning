@@ -11,17 +11,14 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class DelimitedTableReader implements TextReader {
     private final Set<String> targetHeaderNames;
 
-    DelimitedTableReader(List<String> targetHeaderNames) {
+    DelimitedTableReader(Collection<String> targetHeaderNames) {
         this.targetHeaderNames = targetHeaderNames.stream()
                 .map(String::strip)
                 .collect(Collectors.toSet());
@@ -30,7 +27,7 @@ public abstract class DelimitedTableReader implements TextReader {
     abstract CSVFormat getFormat();
 
     @Override
-    public void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer) throws IOException {
+    public void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer) {
         try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
              CSVParser parser = getFormat().parse(reader)) {
 
@@ -42,20 +39,22 @@ public abstract class DelimitedTableReader implements TextReader {
             for (CSVRecord record : parser) {
                 // 레코드의 셀 수가 헤더와 다른 경우
                 if (record.size() != rawHeaderMap.size()) {
-                    throw new IOException("레코드의 셀 수가 헤더와 다릅니다.");
+                    throw new TextReaderException("레코드의 셀 수가 헤더와 다릅니다.");
                 }
 
                 for (Integer targetHeaderIndex : targetHeaderIndexes) {
                     tokenizer.tokenize(record.get(targetHeaderIndex), tokenConsumer);
                 }
             }
-        } catch (UncheckedIOException | IllegalArgumentException e) {
-            throw new IOException(e.getMessage());
+        } catch (IOException e) {
+            throw new TextReaderException("문서를 읽을 수 없습니다.", e);
+        } catch (UncheckedIOException e) {
+            throw new TextReaderException("레코드를 읽을 수 없습니다.", e);
         }
     }
 
     // 입력 헤더와 일치하는 파일 헤더 인덱스를 반환
-    private List<Integer> getTargetHeaderIndexes(Map<String, Integer> rawHeaderMap) throws IOException {
+    private List<Integer> getTargetHeaderIndexes(Map<String, Integer> rawHeaderMap) {
         List<Integer> targetHeaderIndexes = new ArrayList<>();
 
         // 파일 헤더의 앞뒤 공백을 제거하고 입력 헤더와 일치하는 헤더 인덱스를 추가
@@ -68,7 +67,7 @@ public abstract class DelimitedTableReader implements TextReader {
 
         // 입력 헤더와 일치하는 파일 헤더가 없는지 확인
         if (targetHeaderIndexes.size() != targetHeaderNames.size()) {
-            throw new IOException("분석 열이 헤더에 없습니다.");
+            throw new TextReaderException("분석 열이 헤더에 없습니다.");
         }
         return targetHeaderIndexes;
     }

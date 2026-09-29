@@ -1,5 +1,6 @@
 package kr.sesac.wordcounter.analysis.test;
 
+import kr.sesac.wordcounter.analysis.AnalysisException;
 import kr.sesac.wordcounter.analysis.AnalysisMode;
 import kr.sesac.wordcounter.analysis.TokenAnalyzer;
 import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
@@ -11,6 +12,7 @@ import kr.sesac.wordcounter.repository.RepositoryException;
 import kr.sesac.wordcounter.repository.test.DbAggregationMode;
 import kr.sesac.wordcounter.repository.test.JdbcTestRepository;
 import kr.sesac.wordcounter.text.reader.TextReader;
+import kr.sesac.wordcounter.text.reader.TextReaderException;
 import kr.sesac.wordcounter.text.reader.TextReaderKind;
 import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
@@ -34,16 +36,16 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
     private final AnalysisSummary analysisSummary;
     private final List<FileAnalysisFailure> failures = new ArrayList<>();
 
-    public static JdbcTestAnalyzer analyze(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, AnalysisMode analysisMode) throws IOException {
+    public static JdbcTestAnalyzer analyze(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, AnalysisMode analysisMode) throws IOException, AnalysisException, RepositoryException {
         return new JdbcTestAnalyzer(pathString, tokenizer, dbAggregationMode, analysisMode);
     }
 
-    private JdbcTestAnalyzer(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, AnalysisMode analysisMode) throws IOException {
+    private JdbcTestAnalyzer(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, AnalysisMode analysisMode) throws IOException, AnalysisException, RepositoryException {
         if (tokenizer == null) {
             throw new IllegalArgumentException("tokenizer는 null일 수 없습니다.");
         }
 
-        if(dbAggregationMode == null){
+        if (dbAggregationMode == null) {
             throw new IllegalArgumentException("dbAggregationMode는 null일 수 없습니다.");
         }
 
@@ -151,7 +153,7 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
                 session.complete();
                 totalTokenCount += tokenConsumer.getCount();
                 successfulFileCount++;
-            } catch (RepositoryException | IOException e) {
+            } catch (RepositoryException | TextReaderException e) {
                 failures.add(new FileAnalysisFailure(filePath, e.getMessage()));
             }
         }
@@ -159,7 +161,7 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
 
     private static final int MAX_THREAD_COUNT = 4;
 
-    private void analyzeFixedThreadPool(Map<Path, TextReaderKind> readerKindsByPath) throws IOException {
+    private void analyzeFixedThreadPool(Map<Path, TextReaderKind> readerKindsByPath) throws AnalysisException {
         // 파일 경로와 파일 분석 결과
         Map<Path, Future<Long>> futuresByFilePath = new HashMap<>();
 
@@ -170,9 +172,9 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
                 Path filePath = entry.getKey();
 
                 // 개별 파일 분석
+                TextReader textReader = entry.getValue().createReader();
                 Future<Long> future = executorService.submit(() -> {
                     try (var session = REPOSITORY.createSession(dbAggregationMode)) {
-                        TextReader textReader = entry.getValue().createReader();
                         TokenConsumer tokenConsumer = new TokenConsumer(session::add);
                         textReader.readTokens(filePath, tokenizer, tokenConsumer);
                         session.complete();
@@ -195,16 +197,16 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
                 successfulFileCount++;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException();
+                throw new AnalysisException("분석 작업이 중단되었습니다.", e);
             } catch (ExecutionException e) {
                 // 개별 파일 분석 실패 시 실패 목록에 추가
-                if (e.getCause() instanceof IOException ioException) {
-                    failures.add(new FileAnalysisFailure(filePath, ioException.getMessage()));
+                if (e.getCause() instanceof TextReaderException textReaderException) {
+                    failures.add(new FileAnalysisFailure(filePath, textReaderException.getMessage()));
                     continue;
                 }
-                throw new IOException("분석 작업 실패: " + e.getCause().getMessage());
+                throw new AnalysisException("분석 작업이 실패했습니다.", e.getCause());
             } catch (CancellationException e) {
-                throw new IOException("분석 작업 취소");
+                throw new AnalysisException("분석 작업이 취소되었습니다.", e);
             }
         }
     }
@@ -225,11 +227,11 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
         tokenizer.tokenize(word, filteredTokens::add);
 
         if (filteredTokens.size() != 1) {
-            throw new IllegalArgumentException("단어 하나를 입력하세요.");
+            throw new IllegalArgumentException("한 개의 단어여야 합니다.");
         }
 
-        String targetWord = filteredTokens.getFirst();
-        return REPOSITORY.findByToken(targetWord);
+        String targetToken = filteredTokens.getFirst();
+        return REPOSITORY.findByToken(targetToken);
     }
 
     @Override

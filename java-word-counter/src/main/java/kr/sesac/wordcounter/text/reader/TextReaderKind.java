@@ -8,7 +8,7 @@ public enum TextReaderKind {
     TXT(TxtReader::new),
     CSV(() -> new CsvReader(List.of("text"))),
     TSV(() -> new TsvReader(List.of("document"))),
-    HTML(() -> new HtmlReader("#content"));
+    HTML(() -> new HtmlReader("#content", "script, style, nav, header, footer"));
 
     private final Supplier<TextReader> supplier;
 

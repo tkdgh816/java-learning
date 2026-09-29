@@ -3,7 +3,7 @@ package kr.sesac.wordcounter.text.reader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.DuplicateHeaderMode;
 
-import java.util.List;
+import java.util.Collection;
 
 public class TsvReader extends DelimitedTableReader {
     private static final CSVFormat FORMAT = CSVFormat.newFormat('\t').builder()
@@ -13,7 +13,7 @@ public class TsvReader extends DelimitedTableReader {
             .get();
 
 
-    public TsvReader(List<String> targetHeaderNames) {
+    public TsvReader(Collection<String> targetHeaderNames) {
         super(targetHeaderNames);
     }
 
