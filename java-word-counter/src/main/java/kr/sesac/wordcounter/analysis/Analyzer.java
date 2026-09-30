@@ -1,9 +1,9 @@
 package kr.sesac.wordcounter.analysis;
 
-import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
-import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
-import kr.sesac.wordcounter.analysis.result.FileAnalysisSummary;
-import kr.sesac.wordcounter.analysis.result.WordAnalysisSummary;
+import kr.sesac.wordcounter.analysis.summary.AnalysisSummary;
+import kr.sesac.wordcounter.analysis.summary.FileAnalysisFailure;
+import kr.sesac.wordcounter.analysis.summary.FileAnalysisSummary;
+import kr.sesac.wordcounter.analysis.summary.WordAnalysisSummary;
 import kr.sesac.wordcounter.checkpoint.CheckpointException;
 import kr.sesac.wordcounter.checkpoint.CheckpointSession;
 import kr.sesac.wordcounter.model.TokenCount;

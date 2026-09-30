@@ -1,6 +1,6 @@
 package kr.sesac.wordcounter.analysis;
 
-import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
+import kr.sesac.wordcounter.analysis.summary.AnalysisSummary;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.repository.RepositoryException;
 

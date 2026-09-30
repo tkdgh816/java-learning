@@ -1,4 +1,4 @@
-package kr.sesac.wordcounter.analysis.result;
+package kr.sesac.wordcounter.analysis.summary;
 
 import java.nio.file.Path;
 

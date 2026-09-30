@@ -1,7 +1,7 @@
 package kr.sesac.wordcounter;
 
 import kr.sesac.wordcounter.analysis.*;
-import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
+import kr.sesac.wordcounter.analysis.summary.AnalysisSummary;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.report.ReportWriter;
 import kr.sesac.wordcounter.repository.InMemoryRepository;
