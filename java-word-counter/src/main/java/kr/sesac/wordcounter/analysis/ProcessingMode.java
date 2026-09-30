@@ -1,6 +1,6 @@
 package kr.sesac.wordcounter.analysis;
 
-public enum AnalysisMode {
+public enum ProcessingMode {
     SEQUENTIAL,
     FIXED_THREAD_POOL,
 }

@@ -1,7 +1,7 @@
 package kr.sesac.wordcounter.analysis.test;
 
 import kr.sesac.wordcounter.analysis.AnalysisException;
-import kr.sesac.wordcounter.analysis.AnalysisMode;
+import kr.sesac.wordcounter.analysis.ProcessingMode;
 import kr.sesac.wordcounter.analysis.TokenAnalyzer;
 import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
 import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
@@ -36,11 +36,11 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
     private final AnalysisSummary analysisSummary;
     private final List<FileAnalysisFailure> failures = new ArrayList<>();
 
-    public static JdbcTestAnalyzer analyze(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, AnalysisMode analysisMode) throws IOException, AnalysisException, RepositoryException {
-        return new JdbcTestAnalyzer(pathString, tokenizer, dbAggregationMode, analysisMode);
+    public static JdbcTestAnalyzer analyze(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, ProcessingMode processingMode) throws IOException, AnalysisException, RepositoryException {
+        return new JdbcTestAnalyzer(pathString, tokenizer, dbAggregationMode, processingMode);
     }
 
-    private JdbcTestAnalyzer(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, AnalysisMode analysisMode) throws IOException, AnalysisException, RepositoryException {
+    private JdbcTestAnalyzer(String pathString, TextTokenizer tokenizer, DbAggregationMode dbAggregationMode, ProcessingMode processingMode) throws IOException, AnalysisException, RepositoryException {
         if (tokenizer == null) {
             throw new IllegalArgumentException("tokenizer는 null일 수 없습니다.");
         }
@@ -49,7 +49,7 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
             throw new IllegalArgumentException("dbAggregationMode는 null일 수 없습니다.");
         }
 
-        if (analysisMode == null) {
+        if (processingMode == null) {
             throw new IllegalArgumentException("analysisMode는 null일 수 없습니다.");
         }
 
@@ -99,9 +99,9 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
 
         long elapsedNanoTime = System.nanoTime();
         // 분석 모드에 따라 분석 시작 (순차/병렬 처리)
-        switch (analysisMode) {
-            case AnalysisMode.SEQUENTIAL -> analyzeSequential(readerKindsByPath);
-            case AnalysisMode.FIXED_THREAD_POOL -> analyzeFixedThreadPool(readerKindsByPath);
+        switch (processingMode) {
+            case ProcessingMode.SEQUENTIAL -> analyzeSequential(readerKindsByPath);
+            case ProcessingMode.FIXED_THREAD_POOL -> analyzeFixedThreadPool(readerKindsByPath);
         }
         // 분석 처리 시간 기록
         elapsedNanoTime = System.nanoTime() - elapsedNanoTime;

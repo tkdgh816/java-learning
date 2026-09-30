@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.RecordComponent;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -59,7 +60,12 @@ public class TsvWriter {
                 }
             }
 
-            Files.move(temp, output, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                Files.move(temp, output, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temp, output, StandardCopyOption.REPLACE_EXISTING
+                );
+            }
         } finally {
             Files.deleteIfExists(temp);
         }

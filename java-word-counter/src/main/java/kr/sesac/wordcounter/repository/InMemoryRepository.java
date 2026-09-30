@@ -8,7 +8,7 @@ public class InMemoryRepository implements TokenCountRepository {
     private final Map<String, Long> countsByToken = new HashMap<>();
 
     @Override
-    public void clear(){
+    public void clear() {
         countsByToken.clear();
     }
 
@@ -25,14 +25,17 @@ public class InMemoryRepository implements TokenCountRepository {
         }
     }
 
-    // 출현 횟수가 많은 단어가 먼저
-    // 출현 횟수가 같으면 String.compareTo 오름차순
+    // 토큰 정렬 방법
     private static final Comparator<Map.Entry<String, Long>> TOKEN_COUNT_COMPARATOR =
             (e1, e2) -> {
+                // 출현 횟수 내림차순
                 int countComparison = Long.compare(e2.getValue(), e1.getValue());
+
+                // 출현 횟수가 같으면 String.compareTo 오름차순
                 if (countComparison == 0) {
                     return e1.getKey().compareTo(e2.getKey());
                 }
+
                 return countComparison;
             };
 

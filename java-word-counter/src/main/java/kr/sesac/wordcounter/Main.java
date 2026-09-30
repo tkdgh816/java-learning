@@ -1,15 +1,10 @@
 package kr.sesac.wordcounter;
 
-import kr.sesac.wordcounter.analysis.AnalysisException;
-import kr.sesac.wordcounter.analysis.AnalysisMode;
-import kr.sesac.wordcounter.analysis.Analyzer;
-import kr.sesac.wordcounter.analysis.TokenAnalyzer;
+import kr.sesac.wordcounter.analysis.*;
 import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
-import kr.sesac.wordcounter.analysis.test.JdbcTestAnalyzer;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.report.ReportWriter;
 import kr.sesac.wordcounter.repository.InMemoryRepository;
-import kr.sesac.wordcounter.repository.JdbcRepository;
 import kr.sesac.wordcounter.repository.RepositoryException;
 import kr.sesac.wordcounter.repository.TokenCountRepository;
 import kr.sesac.wordcounter.repository.test.DbAggregationMode;
@@ -28,7 +23,11 @@ public class Main {
 
     // 심화 2번
     // 여러 파일 분석 모드 선택 (순차 처리 -> SEQUENTIAL, 병렬 처리 -> FIXED_THREAD_POOL)
-    private static final AnalysisMode ANALYSIS_MODE = AnalysisMode.FIXED_THREAD_POOL;
+    private static final ProcessingMode PROCESSING_MODE = ProcessingMode.FIXED_THREAD_POOL;
+
+    // 심화 3번
+    // 분석 완료한 파일의 단어별 결과를 저장하는 체크포인트 사용 (사용 -> ENABLED, 사용 안 함 -> DISABLED)
+    private static final CheckpointMode CHECKPOINT_MODE = CheckpointMode.DISABLED;
 
     // 심화 7번
     // 단어별 횟수 저장 방식 선택 (메모리 -> IN_MEMORY, 데이터베이스 -> JDBC)
@@ -127,12 +126,12 @@ public class Main {
                     return;
                 }
 
-                analyzer = Analyzer.analyze(pathString, TOKENIZER, REPOSITORY, ANALYSIS_MODE);
+                analyzer = Analyzer.analyze(pathString, TOKENIZER, REPOSITORY, PROCESSING_MODE, CHECKPOINT_MODE);
 
                 // 심화 7번 1~4단계
                 // 1~4단계는 토큰 하나 혹은 아직 집계되지 않은 토큰 목록 단위로 DB에 저장하므로
                 // 파일별 토큰 집계 객체인 FileTokenCounter를 사용하는 Analyzer가 아닌 JdbcTestAnalyzer 사용
-//                 analyzer = JdbcTestAnalyzer.analyze(pathString, TOKENIZER, DB_AGGREGATION_MODE, ANALYSIS_MODE);
+//                 analyzer = JdbcTestAnalyzer.analyze(pathString, TOKENIZER, DB_AGGREGATION_MODE, PROCESSING_MODE);
 
                 printSummary(true);
                 return;

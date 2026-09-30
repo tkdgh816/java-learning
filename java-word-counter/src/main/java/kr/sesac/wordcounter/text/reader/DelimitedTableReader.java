@@ -82,4 +82,39 @@ public abstract class DelimitedTableReader implements TextReader {
         }
         return targetHeaderIndexes;
     }
+
+
+    public void readRecords(Path filePath, Consumer<CSVRecord> recordConsumer){
+        try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
+             CSVParser parser = getFormat().parse(reader)) {
+
+            // 헤더 이름은 대소문자를 구분하며 앞뒤 공백을 제거해 비교
+            // 헤더 이름은 비어 있지 않고 중복되지 않아야 함
+            Map<String, Integer> rawHeaderMap = parser.getHeaderMap();
+
+            try {
+                for (CSVRecord record : parser) {
+                    // 레코드의 셀 수가 헤더와 다른 경우
+                    if (record.size() != rawHeaderMap.size()) {
+                        throw new TextReaderException(
+                                String.format("[%d행] %d번째 레코드의 셀 수(%d)가 헤더(%d)와 다릅니다.",
+                                        parser.getCurrentLineNumber(),
+                                        record.getRecordNumber(),
+                                        record.size(),
+                                        rawHeaderMap.size()));
+                    }
+
+                    recordConsumer.accept(record);
+                }
+            } catch (UncheckedIOException e) {
+                throw new TextReaderException(
+                        String.format("[%d행] %d번째 레코드를 읽을 수 없습니다.",
+                                parser.getCurrentLineNumber(),
+                                parser.getRecordNumber() + 1),
+                        e);
+            }
+        } catch (IOException e) {
+            throw new TextReaderException("문서를 읽을 수 없습니다.", e);
+        }
+    }
 }

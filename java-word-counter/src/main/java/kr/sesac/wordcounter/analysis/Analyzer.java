@@ -4,6 +4,8 @@ import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
 import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
 import kr.sesac.wordcounter.analysis.result.FileAnalysisSummary;
 import kr.sesac.wordcounter.analysis.result.WordAnalysisSummary;
+import kr.sesac.wordcounter.checkpoint.CheckpointException;
+import kr.sesac.wordcounter.checkpoint.CheckpointSession;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.repository.RepositoryException;
 import kr.sesac.wordcounter.repository.TokenCountRepository;
@@ -16,10 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class Analyzer implements TokenAnalyzer {
@@ -30,11 +29,11 @@ public class Analyzer implements TokenAnalyzer {
     private final AnalysisSummary analysisSummary;
     private final List<FileAnalysisFailure> failures = new ArrayList<>();
 
-    public static Analyzer analyze(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException, AnalysisException, RepositoryException {
-        return new Analyzer(pathString, tokenizer, repository, analysisMode);
+    public static Analyzer analyze(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, ProcessingMode processingMode, CheckpointMode checkpointMode) throws IOException, AnalysisException, RepositoryException {
+        return new Analyzer(pathString, tokenizer, repository, processingMode, checkpointMode);
     }
 
-    private Analyzer(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, AnalysisMode analysisMode) throws IOException, AnalysisException, RepositoryException {
+    private Analyzer(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, ProcessingMode processingMode, CheckpointMode checkpointMode) throws IOException, AnalysisException, RepositoryException {
         if (tokenizer == null) {
             throw new IllegalArgumentException("tokenizer는 null일 수 없습니다.");
         }
@@ -43,8 +42,12 @@ public class Analyzer implements TokenAnalyzer {
             throw new IllegalArgumentException("repository는 null일 수 없습니다.");
         }
 
-        if (analysisMode == null) {
-            throw new IllegalArgumentException("analysisMode는 null일 수 없습니다.");
+        if (processingMode == null) {
+            throw new IllegalArgumentException("processingMode는 null일 수 없습니다.");
+        }
+
+        if (checkpointMode == null) {
+            throw new IllegalArgumentException("checkpointMode는 null일 수 없습니다.");
         }
 
         Path inputPath;
@@ -95,11 +98,8 @@ public class Analyzer implements TokenAnalyzer {
 
 
         long elapsedNanoTime = System.nanoTime();
-        // 분석 모드에 따라 분석 시작 (순차/병렬 처리)
-        switch (analysisMode) {
-            case AnalysisMode.SEQUENTIAL -> analyzeSequential(readerKindsByPath);
-            case AnalysisMode.FIXED_THREAD_POOL -> analyzeFixedThreadPool(readerKindsByPath);
-        }
+        // 분석 모드에 따라 분석 시작 (순차/병렬 처리, 체크포인트 사용 여부)
+        analyze(readerKindsByPath, processingMode, checkpointMode);
         // 분석 처리 시간 기록
         elapsedNanoTime = System.nanoTime() - elapsedNanoTime;
 
@@ -116,6 +116,20 @@ public class Analyzer implements TokenAnalyzer {
     @Override
     public boolean hasSuccessfulFiles() {
         return successfulFileCount > 0;
+    }
+
+    private void analyze(Map<Path, TextReaderKind> readerKindsByPath, ProcessingMode processingMode, CheckpointMode checkpointMode) throws AnalysisException {
+        switch (checkpointMode) {
+            case DISABLED -> analyzeWithoutCheckpoint(readerKindsByPath, processingMode);
+            case ENABLED -> analyzeWithCheckpoint(readerKindsByPath, processingMode);
+        }
+    }
+
+    private void analyzeWithoutCheckpoint(Map<Path, TextReaderKind> readerKindsByPath, ProcessingMode processingMode) throws AnalysisException {
+        switch (processingMode) {
+            case SEQUENTIAL -> analyzeSequential(readerKindsByPath);
+            case FIXED_THREAD_POOL -> analyzeFixedThreadPool(readerKindsByPath);
+        }
     }
 
     private void analyzeSequential(Map<Path, TextReaderKind> readerKindsByPath) {
@@ -229,5 +243,115 @@ public class Analyzer implements TokenAnalyzer {
         }
 
         return null;
+    }
+
+    // 체크포인트 사용 시 분석
+    private void analyzeWithCheckpoint(Map<Path, TextReaderKind> readerKindsByPath, ProcessingMode processingMode) throws AnalysisException {
+        switch (processingMode) {
+            case SEQUENTIAL -> analyzeSequentialCheckpoint(readerKindsByPath);
+            case FIXED_THREAD_POOL -> analyzeFixedThreadPoolCheckpoint(readerKindsByPath);
+        }
+    }
+
+    private void analyzeSequentialCheckpoint(Map<Path, TextReaderKind> readerKindsByPath) {
+        try (CheckpointSession checkpointSession = CheckpointSession.open()) {
+            for (var entry : readerKindsByPath.entrySet()) {
+                Path filePath = entry.getKey();
+
+                checkpointSession.restore(filePath).ifPresentOrElse(
+                        this::integrate,
+                        () -> {
+                            System.out.println("새 분석 시작: " + filePath);
+                            // 파일 유형에 해당하는 TextReader 가져옴
+                            TextReader textReader = entry.getValue().createReader();
+
+                            // 파일을 분석하고 결과를 집계, 실패 시 실패 목록에 추가
+                            try {
+                                FileTokenCounter fileTokenCounter = new SourceFileTokenCounter(filePath, textReader, tokenizer);
+                                integrate(fileTokenCounter);
+                                checkpointSession.save(filePath, fileTokenCounter);
+                            } catch (TextReaderException e) {
+                                failures.add(new FileAnalysisFailure(filePath, e.getMessage()));
+                            } catch (CheckpointException e) {
+                                // 분석 성공했지만 체크포인트 저장에 실패한 경우
+                            }
+                        }
+                );
+            }
+        } catch (CheckpointException e) {
+
+        }
+    }
+
+    private void analyzeFixedThreadPoolCheckpoint(Map<Path, TextReaderKind> readerKindsByPath) throws AnalysisException {
+        record FileTokenCounterResult(FileTokenCounter fileTokenCounter, boolean fromCheckpoint) {
+        }
+
+        // 파일 경로와 파일 분석 결과
+        Map<Path, Future<FileTokenCounterResult>> futuresByFilePath = new HashMap<>();
+
+        try (CheckpointSession checkpointSession = CheckpointSession.open()) {
+            // 적절한 스레드 개수를 계산하여 스레드 풀 생성
+            int threadCount = Math.min(readerKindsByPath.size(), MAX_THREAD_COUNT);
+            try (ExecutorService executorService = Executors.newFixedThreadPool(threadCount)) {
+                for (var entry : readerKindsByPath.entrySet()) {
+                    Path filePath = entry.getKey();
+
+                    // 개별 파일 분석
+                    Future<FileTokenCounterResult> future = executorService.submit(() ->
+                    {
+                        Optional<FileTokenCounter> restored = checkpointSession.restore(filePath);
+                        if (restored.isPresent()) {
+                            return new FileTokenCounterResult(restored.get(), true);
+                        }
+
+                        System.out.println("새 분석 시작: " + filePath);
+                        // 파일 유형에 해당하는 TextReader 가져옴
+                        TextReader textReader = entry.getValue().createReader();
+
+                        // 파일을 분석하고 결과를 집계, 실패 시 실패 목록에 추가
+                        FileTokenCounter fileTokenCounter = new SourceFileTokenCounter(filePath, textReader, tokenizer);
+                        return new FileTokenCounterResult(fileTokenCounter, false);
+                    });
+
+                    futuresByFilePath.put(filePath, future);
+                }
+            }
+
+
+            for (var entry : futuresByFilePath.entrySet()) {
+                Path filePath = entry.getKey();
+                Future<FileTokenCounterResult> future = entry.getValue();
+
+                try {
+                    // 개별 파일 분석 작업 완료를 기다리고 결과 통합
+                    FileTokenCounterResult result = future.get();
+                    integrate(result.fileTokenCounter());
+                    if (!result.fromCheckpoint()) {
+                        try {
+                            checkpointSession.save(filePath, result.fileTokenCounter());
+                        } catch (CheckpointException e) {
+                            // 체크포인트 저장 실패하더라도 분석 결과는 이미 집계됨
+                            // 다음 파일 결과 처리 계속
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new AnalysisException("분석 작업이 중단되었습니다.", e);
+                } catch (ExecutionException e) {
+                    // 개별 파일 분석 실패 시 실패 목록에 추가
+                    Throwable cause = e.getCause();
+                    if (cause instanceof TextReaderException textReaderException) {
+                        failures.add(new FileAnalysisFailure(filePath, textReaderException.getMessage()));
+                        continue;
+                    }
+                    throw new AnalysisException("분석 작업이 실패했습니다.", e.getCause());
+                } catch (CancellationException e) {
+                    throw new AnalysisException("분석 작업이 취소되었습니다.", e);
+                }
+            }
+        } catch (CheckpointException e) {
+
+        }
     }
 }
