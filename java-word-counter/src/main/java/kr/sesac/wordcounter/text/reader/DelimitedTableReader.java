@@ -1,6 +1,5 @@
 package kr.sesac.wordcounter.text.reader;
 
-import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -27,7 +26,7 @@ public abstract class DelimitedTableReader implements TextReader {
     abstract CSVFormat getFormat();
 
     @Override
-    public void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer) {
+    public void parseText(Path filePath, Consumer<String> textConsumer) {
         try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
              CSVParser parser = getFormat().parse(reader)) {
 
@@ -49,7 +48,7 @@ public abstract class DelimitedTableReader implements TextReader {
                     }
 
                     for (Integer targetHeaderIndex : targetHeaderIndexes) {
-                        tokenizer.tokenize(record.get(targetHeaderIndex), tokenConsumer);
+                        textConsumer.accept(record.get(targetHeaderIndex));
                     }
                 }
             } catch (UncheckedIOException e) {

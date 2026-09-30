@@ -34,10 +34,12 @@ class SourceFileTokenCounter implements FileTokenCountResult {
     }
 
     private void analyze() {
-        textReader.readTokens(filePath, tokenizer, token -> {
-            countsByToken.put(token, countsByToken.getOrDefault(token, 0L) + 1L);
-            totalTokenCount++;
-        });
+        textReader.parseText(filePath, text ->
+                tokenizer.tokenize(text, token -> {
+                    // 토큰이 Map에 없으면 1을 저장하고, 있으면 기존 값과 1을 합산
+                    countsByToken.merge(token, 1L, Long::sum);
+                    totalTokenCount++;
+                }));
     }
 
     @Override

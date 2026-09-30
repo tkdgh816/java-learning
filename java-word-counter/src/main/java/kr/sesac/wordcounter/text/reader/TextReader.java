@@ -1,7 +1,5 @@
 package kr.sesac.wordcounter.text.reader;
 
-import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
-
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -10,10 +8,8 @@ import java.util.function.Consumer;
  */
 public interface TextReader {
     /**
-     * 지정한 파일을 읽고 토큰화한 결과를 하나씩 소비자에게 전달합니다.
+     * 지정한 파일을 읽고 파싱한 결과를 하나씩 소비자에게 전달합니다.
      *
-     * <p>같은 토큰이 여러 번 발견되면 발견된 횟수만큼 전달하며,
-     * 토큰은 문서에서 발견된 순서대로 전달합니다.</p>
      */
-    void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer);
+    void parseText(Path filePath, Consumer<String> textConsumer);
 }

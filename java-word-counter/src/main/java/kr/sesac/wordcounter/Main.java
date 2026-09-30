@@ -2,15 +2,12 @@ package kr.sesac.wordcounter;
 
 import kr.sesac.wordcounter.analysis.*;
 import kr.sesac.wordcounter.analysis.summary.AnalysisSummary;
-import kr.sesac.wordcounter.analysis.test.JdbcTestAnalyzer;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.report.ReportWriter;
 import kr.sesac.wordcounter.repository.InMemoryRepository;
-import kr.sesac.wordcounter.repository.JdbcRepository;
 import kr.sesac.wordcounter.repository.RepositoryException;
 import kr.sesac.wordcounter.repository.TokenCountRepository;
 import kr.sesac.wordcounter.repository.test.DbAggregationMode;
-import kr.sesac.wordcounter.text.tokenizer.RegexTokenizer;
 import kr.sesac.wordcounter.text.tokenizer.SimpleTokenizer;
 import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 

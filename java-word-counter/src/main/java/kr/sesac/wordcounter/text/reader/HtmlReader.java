@@ -1,6 +1,5 @@
 package kr.sesac.wordcounter.text.reader;
 
-import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -10,6 +9,7 @@ import org.jsoup.select.Selector;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -27,20 +27,25 @@ public class HtmlReader implements TextReader {
     }
 
     @Override
-    public void readTokens(Path filePath, TextTokenizer tokenizer, Consumer<String> tokenConsumer) {
+    public void parseText(Path filePath, Consumer<String> textConsumer) {
         try {
-            Document document = Jsoup.parse(filePath.toFile(), StandardCharsets.UTF_8.name());
+            // UTF8 형식으로 html 텍스트 가져오기
+            String html = Files.readString(filePath, StandardCharsets.UTF_8);
 
+            // html 파싱
+            Document document = Jsoup.parse(html);
+
+            // 본문 요소가 한 개인지 검사
             Elements match = document.select(targetEvaluator);
             if (match.size() != 1) {
                 throw new TextReaderException(targetEvaluator + " 요소가 없거나 여러 개입니다");
             }
 
-            // 원본에 영향을 주지 않도록 복사
+            // 원본에 영향을 주지 않도록 복사하고 제외 선택자 제거
             Element element = match.getFirst().clone();
             element.select(excludedEvaluator).remove();
 
-            tokenizer.tokenize(element.text(), tokenConsumer);
+            textConsumer.accept(element.text());
         } catch (IOException e) {
             throw new TextReaderException("HTML 문서를 읽을 수 없습니다.", e);
         }

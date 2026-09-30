@@ -152,7 +152,8 @@ public class JdbcTestAnalyzer implements Analysis {
             // 파일을 분석하고 결과를 집계, 실패 시 실패 목록에 추가
             try (var session = REPOSITORY.createSession(dbAggregationMode)) {
                 TokenConsumer tokenConsumer = new TokenConsumer(session::add);
-                textReader.readTokens(filePath, tokenizer, tokenConsumer);
+                textReader.parseText(filePath, text ->
+                        tokenizer.tokenize(text, tokenConsumer));
                 session.complete();
                 totalTokenCount += tokenConsumer.getCount();
                 successfulFileCount++;
@@ -177,7 +178,8 @@ public class JdbcTestAnalyzer implements Analysis {
                 Future<Long> future = executorService.submit(() -> {
                     try (var session = REPOSITORY.createSession(dbAggregationMode)) {
                         TokenConsumer tokenConsumer = new TokenConsumer(session::add);
-                        textReader.readTokens(filePath, tokenizer, tokenConsumer);
+                        textReader.parseText(filePath, text ->
+                                tokenizer.tokenize(text, tokenConsumer));
                         session.complete();
                         return tokenConsumer.getCount();
                     }
