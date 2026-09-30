@@ -28,7 +28,6 @@ public class SimpleTokenizer implements TextTokenizer {
                 continue;
             }
 
-            //
             if (containsLetter) {
                 consumer.accept(text.substring(startIndex, i).toLowerCase(Locale.ROOT));
             }
