@@ -2,12 +2,15 @@ package kr.sesac.wordcounter;
 
 import kr.sesac.wordcounter.analysis.*;
 import kr.sesac.wordcounter.analysis.summary.AnalysisSummary;
+import kr.sesac.wordcounter.analysis.test.JdbcTestAnalyzer;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.report.ReportWriter;
 import kr.sesac.wordcounter.repository.InMemoryRepository;
+import kr.sesac.wordcounter.repository.JdbcRepository;
 import kr.sesac.wordcounter.repository.RepositoryException;
 import kr.sesac.wordcounter.repository.TokenCountRepository;
 import kr.sesac.wordcounter.repository.test.DbAggregationMode;
+import kr.sesac.wordcounter.text.tokenizer.RegexTokenizer;
 import kr.sesac.wordcounter.text.tokenizer.SimpleTokenizer;
 import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
@@ -23,7 +26,7 @@ public class Main {
 
     // 심화 2번
     // 여러 파일 분석 모드 선택 (순차 처리 -> SEQUENTIAL, 병렬 처리 -> FIXED_THREAD_POOL)
-    private static final ProcessingMode PROCESSING_MODE = ProcessingMode.FIXED_THREAD_POOL;
+    private static final ProcessingMode PROCESSING_MODE = ProcessingMode.SEQUENTIAL;
 
     // 심화 3번
     // 분석 완료한 파일의 단어별 결과를 저장하는 체크포인트 사용 (사용 -> ENABLED, 사용 안 함 -> DISABLED)

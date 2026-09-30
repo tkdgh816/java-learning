@@ -30,6 +30,7 @@ import java.util.function.Consumer;
 public class JdbcTestAnalyzer implements Analysis {
     private final TextTokenizer tokenizer;
     private static final JdbcTestRepository REPOSITORY = new JdbcTestRepository();
+    private static final int MAX_THREAD_COUNT = 4;
     private final DbAggregationMode dbAggregationMode;
     private long totalTokenCount;    // 전체 분석 단어 횟수
     private int successfulFileCount;   // 지원 파일 분석 성공 횟수
@@ -160,8 +161,6 @@ public class JdbcTestAnalyzer implements Analysis {
             }
         }
     }
-
-    private static final int MAX_THREAD_COUNT = 4;
 
     private void analyzeFixedThreadPool(Map<Path, TextReaderKind> readerKindsByPath) throws AnalysisException {
         // 파일 경로와 파일 분석 결과

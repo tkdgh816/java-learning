@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 
 public enum TextReaderKind {
     TXT(TxtReader::new),
-    CSV(() -> new CsvReader(List.of("text"))),
+    CSV(() -> new CsvReader(List.of("Q", "A"))),
     TSV(() -> new TsvReader(List.of("document"))),
     HTML(() -> new HtmlReader("#content", "script, style, nav, header, footer"));
 
@@ -33,5 +33,5 @@ public enum TextReaderKind {
     // 체크포인트로 파일 분석 결과 저장 시 분석 방법이 변경되었는지
     // 메타데이터에 기록하고 확인하기 위해 필요
     // TextReader의 분석 방식을 수정하였다면 버전도 바뀌어야 함
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "2.0";
 }
