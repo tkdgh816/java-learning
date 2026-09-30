@@ -5,7 +5,6 @@ import kr.sesac.wordcounter.model.TokenCount;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 public class JdbcRepository implements TokenCountRepository {

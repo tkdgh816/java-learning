@@ -37,7 +37,7 @@ public class Main {
     // 입력 경로와 토크나이저, 저장 방식, 분석 모드 등을 받아서
     // 분석을 수행하고 분석 결과를 집계하는 객체
     // 새 분석 시 analyze()에서 객체를 만들고 분석을 시작
-    private static TokenAnalyzer analyzer;
+    private static Analysis analysis;
 
     // 심화 7번 1~4단계
     private static final DbAggregationMode DB_AGGREGATION_MODE = DbAggregationMode.STAGE_4;
@@ -94,8 +94,8 @@ public class Main {
 
     private static int readMenu() {
         while (true) {
-            if (analyzer != null) {
-                System.out.printf("최근 분석: %s%n", analyzer.getSummary().inputPath());
+            if (analysis != null) {
+                System.out.printf("최근 분석: %s%n", analysis.getSummary().inputPath());
             }
             System.out.print("메뉴 선택 > ");
             String input = scanner.nextLine().strip();
@@ -126,12 +126,13 @@ public class Main {
                     return;
                 }
 
-                analyzer = Analyzer.analyze(pathString, TOKENIZER, REPOSITORY, PROCESSING_MODE, CHECKPOINT_MODE);
+                // 분석 및 Analyzer 객체 생성 -> 다른 메뉴에서 분석 사용
+                analysis = Analyzer.analyze(pathString, TOKENIZER, REPOSITORY, PROCESSING_MODE, CHECKPOINT_MODE);
 
                 // 심화 7번 1~4단계
                 // 1~4단계는 토큰 하나 혹은 아직 집계되지 않은 토큰 목록 단위로 DB에 저장하므로
                 // 파일별 토큰 집계 객체인 FileTokenCounter를 사용하는 Analyzer가 아닌 JdbcTestAnalyzer 사용
-//                 analyzer = JdbcTestAnalyzer.analyze(pathString, TOKENIZER, DB_AGGREGATION_MODE, PROCESSING_MODE);
+//                analysis = JdbcTestAnalyzer.analyze(pathString, TOKENIZER, DB_AGGREGATION_MODE, PROCESSING_MODE);
 
                 printSummary(true);
                 return;
@@ -142,7 +143,7 @@ public class Main {
                 // 분석 시스템 자체가 실패하거나 저장소 오류가 발생했을 때:
                 // 저장소가 초기화되었거나 저장소에 일부 집계되었을 수 있음 -> 기존 결과 버림
                 // (분석을 완료했으나 모든 파일 실패한 상황은 이 경우에 포함되지 않음)
-                analyzer = null;
+                analysis = null;
                 System.out.println("분석을 완료하지 못했습니다: " + e.getMessage());
                 return;
             }
@@ -151,7 +152,7 @@ public class Main {
 
     // 기존 분석이 존재하는지 확인
     private static boolean isAnalysisInvalid() {
-        if (analyzer == null) {
+        if (analysis == null) {
             System.out.println("분석을 먼저 해 주세요.");
             System.out.println();
             return true;
@@ -166,7 +167,7 @@ public class Main {
             return true;
         }
 
-        if (!analyzer.hasSuccessfulFiles()) {
+        if (!analysis.hasUsableResult()) {
             System.out.println("모든 파일 분석에 실패했습니다.");
             System.out.println();
             return true;
@@ -180,9 +181,9 @@ public class Main {
             return;
         }
 
-        AnalysisSummary summary = analyzer.getSummary();
+        AnalysisSummary summary = analysis.getSummary();
         if (containsFailures) {
-            System.out.println(ReportWriter.generateFailureSummary(summary.failures()));
+            System.out.println(ReportWriter.generateFailureSummary(summary.fileSummary().failures()));
         }
 
         System.out.println(ReportWriter.generateAnalysisSummary(summary));
@@ -204,7 +205,7 @@ public class Main {
                 int number = input.isBlank() ? DEFAULT_TOP_WORD_COUNT : Integer.parseInt(input);
 
                 if (number > 0) {
-                    List<TokenCount> tokenCounts = analyzer.getTopWords(number);
+                    List<TokenCount> tokenCounts = analysis.getTopWords(number);
                     for (int i = 0; i < tokenCounts.size(); i++) {
                         TokenCount tokenCount = tokenCounts.get(i);
                         System.out.printf("%d. %s : %d회%n", i + 1, tokenCount.token(), tokenCount.count());
@@ -234,7 +235,7 @@ public class Main {
             String word = scanner.nextLine().strip();
 
             try {
-                TokenCount tokenCount = analyzer.findByWord(word);
+                TokenCount tokenCount = analysis.findByWord(word);
                 System.out.printf("%s: %d회%n", tokenCount.token(), tokenCount.count());
                 break;
             } catch (IllegalArgumentException e) {
@@ -256,7 +257,7 @@ public class Main {
         }
 
         try {
-            List<TokenCount> tokenCounts = analyzer.getAllWordsSorted();
+            List<TokenCount> tokenCounts = analysis.getAllWordsSorted();
             ReportWriter.saveAsFile(OUTPUT_PATH, tokenCounts);
             System.out.printf("전체 결과 %d개 단어를 %s에 저장했습니다.%n", tokenCounts.size(), OUTPUT_PATH);
         } catch (IOException e) {

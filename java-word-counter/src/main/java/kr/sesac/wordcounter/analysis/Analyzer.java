@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class Analyzer implements TokenAnalyzer {
+public class Analyzer implements Analysis {
     private final TextTokenizer tokenizer;
     private final TokenCountRepository repository;
     private long totalTokenCount;    // 전체 분석 단어 횟수
@@ -103,18 +103,17 @@ public class Analyzer implements TokenAnalyzer {
         // 분석 처리 시간 기록
         elapsedNanoTime = System.nanoTime() - elapsedNanoTime;
 
-        FileAnalysisSummary fileSummary = new FileAnalysisSummary(readerKindsByPath.size(), successfulFileCount, skippedFileCount);
+        FileAnalysisSummary fileSummary = new FileAnalysisSummary(readerKindsByPath.size(), successfulFileCount, skippedFileCount, List.copyOf(failures));
         WordAnalysisSummary wordSummary = new WordAnalysisSummary(totalTokenCount, repository.getUniqueCount());
         analysisSummary = new AnalysisSummary(
                 inputPath,
                 fileSummary,
                 wordSummary,
-                elapsedNanoTime / 1_000_000L,
-                List.copyOf(failures));
+                elapsedNanoTime / 1_000_000L);
     }
 
     @Override
-    public boolean hasSuccessfulFiles() {
+    public boolean hasUsableResult() {
         return successfulFileCount > 0;
     }
 
@@ -140,8 +139,8 @@ public class Analyzer implements TokenAnalyzer {
 
             // 파일을 분석하고 결과를 집계, 실패 시 실패 목록에 추가
             try {
-                FileTokenCounter fileTokenCounter = new SourceFileTokenCounter(filePath, textReader, tokenizer);
-                integrate(fileTokenCounter);
+                FileTokenCountResult fileTokenCountResult = SourceFileTokenCounter.countTokens(filePath, textReader, tokenizer);
+                integrate(fileTokenCountResult);
             } catch (TextReaderException e) {
                 failures.add(new FileAnalysisFailure(filePath, e.getMessage()));
             }
@@ -152,7 +151,7 @@ public class Analyzer implements TokenAnalyzer {
 
     private void analyzeFixedThreadPool(Map<Path, TextReaderKind> readerKindsByPath) throws AnalysisException {
         // 파일 경로와 파일 분석 결과
-        Map<Path, Future<FileTokenCounter>> futuresByFilePath = new HashMap<>();
+        Map<Path, Future<FileTokenCountResult>> futuresByFilePath = new HashMap<>();
 
         // 적절한 스레드 개수를 계산하여 스레드 풀 생성
         int threadCount = Math.min(readerKindsByPath.size(), MAX_THREAD_COUNT);
@@ -162,7 +161,7 @@ public class Analyzer implements TokenAnalyzer {
 
                 // 개별 파일 분석
                 TextReader textReader = entry.getValue().createReader();
-                Future<FileTokenCounter> future = executorService.submit(() -> new SourceFileTokenCounter(filePath, textReader, tokenizer));
+                Future<FileTokenCountResult> future = executorService.submit(() -> SourceFileTokenCounter.countTokens(filePath, textReader, tokenizer));
 
                 futuresByFilePath.put(filePath, future);
             }
@@ -170,12 +169,12 @@ public class Analyzer implements TokenAnalyzer {
 
         for (var entry : futuresByFilePath.entrySet()) {
             Path filePath = entry.getKey();
-            Future<FileTokenCounter> future = entry.getValue();
+            Future<FileTokenCountResult> future = entry.getValue();
 
             try {
                 // 개별 파일 분석 작업 완료를 기다리고 결과 통합
-                FileTokenCounter fileTokenCounter = future.get();
-                integrate(fileTokenCounter);
+                FileTokenCountResult fileTokenCountResult = future.get();
+                integrate(fileTokenCountResult);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new AnalysisException("분석 작업이 중단되었습니다.", e);
@@ -193,10 +192,10 @@ public class Analyzer implements TokenAnalyzer {
     }
 
     // 각 파일 분석 결과를 통합하여 집계
-    private void integrate(FileTokenCounter fileTokenCounter) {
-        if (fileTokenCounter != null) {
-            repository.addAll(fileTokenCounter.getTokenCounts());
-            totalTokenCount += fileTokenCounter.getTotalTokenCount();
+    private void integrate(FileTokenCountResult fileTokenCountResult) {
+        if (fileTokenCountResult != null) {
+            repository.addAll(fileTokenCountResult.getTokenCounts());
+            totalTokenCount += fileTokenCountResult.getTotalTokenCount();
             successfulFileCount++;
         }
     }
@@ -267,9 +266,9 @@ public class Analyzer implements TokenAnalyzer {
 
                             // 파일을 분석하고 결과를 집계, 실패 시 실패 목록에 추가
                             try {
-                                FileTokenCounter fileTokenCounter = new SourceFileTokenCounter(filePath, textReader, tokenizer);
-                                integrate(fileTokenCounter);
-                                checkpointSession.save(filePath, fileTokenCounter);
+                                FileTokenCountResult fileTokenCountResult = SourceFileTokenCounter.countTokens(filePath, textReader, tokenizer);
+                                integrate(fileTokenCountResult);
+                                checkpointSession.save(filePath, fileTokenCountResult);
                             } catch (TextReaderException e) {
                                 failures.add(new FileAnalysisFailure(filePath, e.getMessage()));
                             } catch (CheckpointException e) {
@@ -284,7 +283,7 @@ public class Analyzer implements TokenAnalyzer {
     }
 
     private void analyzeFixedThreadPoolCheckpoint(Map<Path, TextReaderKind> readerKindsByPath) throws AnalysisException {
-        record FileTokenCounterResult(FileTokenCounter fileTokenCounter, boolean fromCheckpoint) {
+        record FileTokenCounterResult(FileTokenCountResult fileTokenCounter, boolean fromCheckpoint) {
         }
 
         // 파일 경로와 파일 분석 결과
@@ -300,7 +299,7 @@ public class Analyzer implements TokenAnalyzer {
                     // 개별 파일 분석
                     Future<FileTokenCounterResult> future = executorService.submit(() ->
                     {
-                        Optional<FileTokenCounter> restored = checkpointSession.restore(filePath);
+                        Optional<FileTokenCountResult> restored = checkpointSession.restore(filePath);
                         if (restored.isPresent()) {
                             return new FileTokenCounterResult(restored.get(), true);
                         }
@@ -310,8 +309,8 @@ public class Analyzer implements TokenAnalyzer {
                         TextReader textReader = entry.getValue().createReader();
 
                         // 파일을 분석하고 결과를 집계, 실패 시 실패 목록에 추가
-                        FileTokenCounter fileTokenCounter = new SourceFileTokenCounter(filePath, textReader, tokenizer);
-                        return new FileTokenCounterResult(fileTokenCounter, false);
+                        FileTokenCountResult fileTokenCountResult = SourceFileTokenCounter.countTokens(filePath, textReader, tokenizer);
+                        return new FileTokenCounterResult(fileTokenCountResult, false);
                     });
 
                     futuresByFilePath.put(filePath, future);

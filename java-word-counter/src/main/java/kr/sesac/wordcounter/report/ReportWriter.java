@@ -5,10 +5,7 @@ import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.text.writer.TsvWriter;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 

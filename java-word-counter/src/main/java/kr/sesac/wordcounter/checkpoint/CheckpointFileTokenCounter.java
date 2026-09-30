@@ -1,13 +1,13 @@
 package kr.sesac.wordcounter.checkpoint;
 
-import kr.sesac.wordcounter.analysis.FileTokenCounter;
+import kr.sesac.wordcounter.analysis.FileTokenCountResult;
 import kr.sesac.wordcounter.model.TokenCount;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class CheckpointFileTokenCounter implements FileTokenCounter {
+class CheckpointFileTokenCounter implements FileTokenCountResult {
     private final Map<String, Long> countsByToken = new HashMap<>();
     private long totalTokenCount;
 

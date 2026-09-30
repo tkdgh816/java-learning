@@ -1,19 +1,13 @@
 package kr.sesac.wordcounter.analysis;
 
 import kr.sesac.wordcounter.model.TokenCount;
-import kr.sesac.wordcounter.text.reader.TextReader;
-import kr.sesac.wordcounter.text.reader.TextReaderException;
-import kr.sesac.wordcounter.text.tokenizer.TextTokenizer;
 
-import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 파일 하나에 대한 토큰 집계 결과를 제공합니다.
  */
-public interface FileTokenCounter {
+public interface FileTokenCountResult {
     /**
      * 집계된 토큰별 출현 횟수를 반환합니다.
      */

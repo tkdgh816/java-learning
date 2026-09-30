@@ -14,6 +14,13 @@ public class RegexTokenizer implements TextTokenizer {
 
     @Override
     public void tokenize(String text, Consumer<String> consumer) {
+        if (text == null) {
+            throw new IllegalArgumentException("text는 null일 수 없습니다.");
+        }
+        if (consumer == null) {
+            throw new IllegalArgumentException("consumer는 null일 수 없습니다.");
+        }
+
         // 영어, 한글, 숫자로만 이루어진 토큰
         Matcher tokenMatcher = TOKEN_PATTERN.matcher(text);
         while (tokenMatcher.find()) {

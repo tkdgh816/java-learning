@@ -1,8 +1,8 @@
 package kr.sesac.wordcounter.analysis.test;
 
+import kr.sesac.wordcounter.analysis.Analysis;
 import kr.sesac.wordcounter.analysis.AnalysisException;
 import kr.sesac.wordcounter.analysis.ProcessingMode;
-import kr.sesac.wordcounter.analysis.TokenAnalyzer;
 import kr.sesac.wordcounter.analysis.result.AnalysisSummary;
 import kr.sesac.wordcounter.analysis.result.FileAnalysisFailure;
 import kr.sesac.wordcounter.analysis.result.FileAnalysisSummary;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-public class JdbcTestAnalyzer implements TokenAnalyzer {
+public class JdbcTestAnalyzer implements Analysis {
     private final TextTokenizer tokenizer;
     private static final JdbcTestRepository REPOSITORY = new JdbcTestRepository();
     private final DbAggregationMode dbAggregationMode;
@@ -106,21 +106,23 @@ public class JdbcTestAnalyzer implements TokenAnalyzer {
         // 분석 처리 시간 기록
         elapsedNanoTime = System.nanoTime() - elapsedNanoTime;
 
-        FileAnalysisSummary fileSummary = new FileAnalysisSummary(readerKindsByPath.size(), successfulFileCount, skippedFileCount);
+        FileAnalysisSummary fileSummary = new FileAnalysisSummary(readerKindsByPath.size(), successfulFileCount, skippedFileCount,  List.copyOf(failures));
         WordAnalysisSummary wordSummary = new WordAnalysisSummary(totalTokenCount, REPOSITORY.getUniqueCount());
         analysisSummary = new AnalysisSummary(
                 inputPath,
                 fileSummary,
                 wordSummary,
-                elapsedNanoTime / 1_000_000L,
-                List.copyOf(failures));
+                elapsedNanoTime / 1_000_000L);
     }
 
     @Override
-    public boolean hasSuccessfulFiles() {
+    public boolean hasUsableResult() {
         return successfulFileCount > 0;
     }
 
+    // 개별 토큰이 생성되었을 때 바로 DB 저장소에서 처리하기 위함
+    // 이는 파일별로 토큰 집계 결과를 모으는 방식이 아닐 때 해당될 수 있음
+    // inner consumer에는 저장소에서 토큰 정보를 처리(저장)하는 동작이 들어갈 수 있음
     private static class TokenConsumer implements Consumer<String> {
         private final Consumer<String> inner;
         private long count;

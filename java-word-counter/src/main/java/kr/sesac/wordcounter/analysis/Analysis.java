@@ -11,11 +11,12 @@ import java.util.List;
  * <p>분석에 성공한 파일의 존재 여부, 단어별 출현 횟수,
  * 정렬된 집계 결과 및 전체 분석 요약을 제공합니다.</p>
  */
-public interface TokenAnalyzer {
+public interface Analysis {
     /**
-     * 분석에 성공하여 집계 결과에 반영된 파일이 하나 이상인지 확인합니다.
+     * 단어 집계 결과를 사용할 수 있는지 확인합니다.
+     * 하나 이상의 입력 대상이 성공적으로 분석되었으면 {@code true}
      */
-    boolean hasSuccessfulFiles();
+    boolean hasUsableResult();
 
     /**
      * 출현 횟수가 많은 순서대로 최대 {@code limit}개의 단어를 반환합니다.

@@ -6,6 +6,13 @@ import java.util.function.Consumer;
 public class SimpleTokenizer implements TextTokenizer {
     @Override
     public void tokenize(String text, Consumer<String> consumer) {
+        if (text == null) {
+            throw new IllegalArgumentException("text는 null일 수 없습니다.");
+        }
+        if (consumer == null) {
+            throw new IllegalArgumentException("consumer는 null일 수 없습니다.");
+        }
+
         int startIndex = 0;
         boolean containsLetter = false;
 
@@ -21,6 +28,7 @@ public class SimpleTokenizer implements TextTokenizer {
                 continue;
             }
 
+            //
             if (containsLetter) {
                 consumer.accept(text.substring(startIndex, i).toLowerCase(Locale.ROOT));
             }

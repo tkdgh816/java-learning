@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class SourceFileTokenCounter implements FileTokenCounter {
+class SourceFileTokenCounter implements FileTokenCountResult {
     private final Path filePath;
     private final TextReader textReader;
     private final TextTokenizer tokenizer;
@@ -18,15 +18,22 @@ class SourceFileTokenCounter implements FileTokenCounter {
     private final Map<String, Long> countsByToken = new HashMap<>();
     private long totalTokenCount;
 
-    SourceFileTokenCounter(Path filePath, TextReader textReader, TextTokenizer tokenizer) throws TextReaderException {
+    private SourceFileTokenCounter(Path filePath, TextReader textReader, TextTokenizer tokenizer) throws TextReaderException {
         this.filePath = filePath;
         this.textReader = textReader;
         this.tokenizer = tokenizer;
-
-        analyze();
     }
 
-    private void analyze() throws TextReaderException {
+    public static SourceFileTokenCounter countTokens(Path filePath, TextReader textReader, TextTokenizer tokenizer) throws TextReaderException {
+        SourceFileTokenCounter tokenCounter = new SourceFileTokenCounter(filePath, textReader, tokenizer);
+
+        // 파일 분석 시작
+        tokenCounter.analyze();
+
+        return tokenCounter;
+    }
+
+    private void analyze() {
         textReader.readTokens(filePath, tokenizer, token -> {
             countsByToken.put(token, countsByToken.getOrDefault(token, 0L) + 1L);
             totalTokenCount++;

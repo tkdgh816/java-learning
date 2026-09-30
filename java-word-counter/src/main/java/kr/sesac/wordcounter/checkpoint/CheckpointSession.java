@@ -1,9 +1,8 @@
 package kr.sesac.wordcounter.checkpoint;
 
-import kr.sesac.wordcounter.analysis.FileTokenCounter;
+import kr.sesac.wordcounter.analysis.FileTokenCountResult;
 import kr.sesac.wordcounter.model.TokenCount;
 import kr.sesac.wordcounter.text.reader.TextReaderException;
-import kr.sesac.wordcounter.text.reader.TextReaderKind;
 import kr.sesac.wordcounter.text.reader.TsvReader;
 import kr.sesac.wordcounter.text.writer.TsvWriter;
 
@@ -11,7 +10,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class CheckpointSession implements AutoCloseable {
     private static final String[] METADATA_HEADER_NAMES = {"originalFilePath", "countsFilePath", "originalFileSha256", "readerVersion"};
@@ -43,7 +45,7 @@ public class CheckpointSession implements AutoCloseable {
         }
     }
 
-    public Optional<FileTokenCounter> restore(Path filePath) {
+    public Optional<FileTokenCountResult> restore(Path filePath) {
         try {
             filePath = filePath.toAbsolutePath().normalize();
             CheckpointMetadata currentMetadata = CheckpointMetadata.create(filePath);
@@ -57,7 +59,7 @@ public class CheckpointSession implements AutoCloseable {
         return Optional.empty();
     }
 
-    public void save(Path path, FileTokenCounter tokenCounter) {
+    public void save(Path path, FileTokenCountResult tokenCounter) {
         try {
             CheckpointMetadata metadata = CheckpointMetadata.create(path);
             String originalFilePathString = metadata.originalFilePath();
@@ -83,7 +85,7 @@ public class CheckpointSession implements AutoCloseable {
 
     }
 
-    private Optional<FileTokenCounter> getCheckPoint(CheckpointMetadata metadata) {
+    private Optional<FileTokenCountResult> getCheckPoint(CheckpointMetadata metadata) {
         try {
             Path countsFile = Path.of(metadata.countsFilePath());
             if (!Files.exists(countsFile)) {
