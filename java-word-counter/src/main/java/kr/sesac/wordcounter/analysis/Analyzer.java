@@ -30,11 +30,11 @@ public class Analyzer implements Analysis {
     private final AnalysisSummary analysisSummary;
     private final List<FileAnalysisFailure> failures = new ArrayList<>();
 
-    public static Analyzer analyze(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, ProcessingMode processingMode, CheckpointMode checkpointMode) throws IOException, AnalysisException, RepositoryException {
-        return new Analyzer(pathString, tokenizer, repository, processingMode, checkpointMode);
+    public static Analyzer analyze(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, ProcessingMode processingMode, boolean useCheckpoint) throws IOException, AnalysisException, RepositoryException {
+        return new Analyzer(pathString, tokenizer, repository, processingMode, useCheckpoint);
     }
 
-    private Analyzer(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, ProcessingMode processingMode, CheckpointMode checkpointMode) throws IOException, AnalysisException, RepositoryException {
+    private Analyzer(String pathString, TextTokenizer tokenizer, TokenCountRepository repository, ProcessingMode processingMode, boolean useCheckpoint) throws IOException, AnalysisException, RepositoryException {
         if (tokenizer == null) {
             throw new IllegalArgumentException("tokenizer는 null일 수 없습니다.");
         }
@@ -45,10 +45,6 @@ public class Analyzer implements Analysis {
 
         if (processingMode == null) {
             throw new IllegalArgumentException("processingMode는 null일 수 없습니다.");
-        }
-
-        if (checkpointMode == null) {
-            throw new IllegalArgumentException("checkpointMode는 null일 수 없습니다.");
         }
 
         Path inputPath;
@@ -100,7 +96,17 @@ public class Analyzer implements Analysis {
 
         long elapsedNanoTime = System.nanoTime();
         // 분석 모드에 따라 분석 시작 (순차/병렬 처리, 체크포인트 사용 여부)
-        analyze(readerKindsByPath, processingMode, checkpointMode);
+        if (useCheckpoint) {
+            switch (processingMode) {
+                case SEQUENTIAL -> analyzeSequentialCheckpoint(readerKindsByPath);
+                case FIXED_THREAD_POOL -> analyzeFixedThreadPoolCheckpoint(readerKindsByPath);
+            }
+        } else {
+            switch (processingMode) {
+                case SEQUENTIAL -> analyzeSequential(readerKindsByPath);
+                case FIXED_THREAD_POOL -> analyzeFixedThreadPool(readerKindsByPath);
+            }
+        }
         // 분석 처리 시간 기록
         elapsedNanoTime = System.nanoTime() - elapsedNanoTime;
 
@@ -116,20 +122,6 @@ public class Analyzer implements Analysis {
     @Override
     public boolean hasUsableResult() {
         return successfulFileCount > 0;
-    }
-
-    private void analyze(Map<Path, TextReaderKind> readerKindsByPath, ProcessingMode processingMode, CheckpointMode checkpointMode) throws AnalysisException {
-        switch (checkpointMode) {
-            case DISABLED -> analyzeWithoutCheckpoint(readerKindsByPath, processingMode);
-            case ENABLED -> analyzeWithCheckpoint(readerKindsByPath, processingMode);
-        }
-    }
-
-    private void analyzeWithoutCheckpoint(Map<Path, TextReaderKind> readerKindsByPath, ProcessingMode processingMode) throws AnalysisException {
-        switch (processingMode) {
-            case SEQUENTIAL -> analyzeSequential(readerKindsByPath);
-            case FIXED_THREAD_POOL -> analyzeFixedThreadPool(readerKindsByPath);
-        }
     }
 
     private void analyzeSequential(Map<Path, TextReaderKind> readerKindsByPath) {
@@ -244,13 +236,6 @@ public class Analyzer implements Analysis {
     }
 
     // 체크포인트 사용 시 분석
-    private void analyzeWithCheckpoint(Map<Path, TextReaderKind> readerKindsByPath, ProcessingMode processingMode) throws AnalysisException {
-        switch (processingMode) {
-            case SEQUENTIAL -> analyzeSequentialCheckpoint(readerKindsByPath);
-            case FIXED_THREAD_POOL -> analyzeFixedThreadPoolCheckpoint(readerKindsByPath);
-        }
-    }
-
     private void analyzeSequentialCheckpoint(Map<Path, TextReaderKind> readerKindsByPath) {
         try (CheckpointSession checkpointSession = CheckpointSession.open()) {
             for (var entry : readerKindsByPath.entrySet()) {

@@ -26,8 +26,8 @@ public class Main {
     private static final ProcessingMode PROCESSING_MODE = ProcessingMode.SEQUENTIAL;
 
     // 심화 3번
-    // 분석 완료한 파일의 단어별 결과를 저장하는 체크포인트 사용 (사용 -> ENABLED, 사용 안 함 -> DISABLED)
-    private static final CheckpointMode CHECKPOINT_MODE = CheckpointMode.DISABLED;
+    // 분석 완료한 파일의 단어별 결과를 저장하는 체크포인트 사용 (사용 -> true, 사용 안 함 -> false)
+    private static final boolean USE_CHECKPOINT = false;
 
     // 심화 7번
     // 단어별 횟수 저장 방식 선택 (메모리 -> IN_MEMORY, 데이터베이스 -> JDBC)
@@ -127,7 +127,7 @@ public class Main {
                 }
 
                 // 분석 및 Analyzer 객체 생성 -> 다른 메뉴에서 분석 사용
-                analysis = Analyzer.analyze(pathString, TOKENIZER, REPOSITORY, PROCESSING_MODE, CHECKPOINT_MODE);
+                analysis = Analyzer.analyze(pathString, TOKENIZER, REPOSITORY, PROCESSING_MODE, USE_CHECKPOINT);
 
                 // 심화 7번 1~4단계
                 // 1~4단계는 토큰 하나 혹은 아직 집계되지 않은 토큰 목록 단위로 DB에 저장하므로
