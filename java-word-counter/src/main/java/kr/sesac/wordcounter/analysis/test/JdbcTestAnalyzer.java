@@ -51,7 +51,7 @@ public class JdbcTestAnalyzer implements Analysis {
         }
 
         if (processingMode == null) {
-            throw new IllegalArgumentException("analysisMode는 null일 수 없습니다.");
+            throw new IllegalArgumentException("processingMode는 null일 수 없습니다.");
         }
 
         Path inputPath;

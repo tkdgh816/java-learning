@@ -14,7 +14,7 @@ import java.util.HexFormat;
 public record CheckpointMetadata(String originalFilePath, String countsFilePath, String originalFileSha256,
                                  String readerVersion) {
     public static CheckpointMetadata create(Path originalPath) throws IOException {
-        originalPath = originalPath.toAbsolutePath().normalize();;
+        originalPath = originalPath.toAbsolutePath().normalize();
         Path outputPath = Path.of("out", "checkpoint", sha256OfString(originalPath.toString()) + ".tsv");
         return new CheckpointMetadata(originalPath.toString(), outputPath.toString(), sha256OfFile(originalPath), TextReaderKind.VERSION);
     }
