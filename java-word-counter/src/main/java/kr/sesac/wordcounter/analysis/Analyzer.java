@@ -253,6 +253,7 @@ public class Analyzer implements Analysis {
             }
         } catch (CheckpointException e) {
             // 종료 시 체크포인트 메타데이터 저장 실패는 분석 결과에 영향을 주지 않음
+            System.out.println("체크포인트 메타데이터 파일 저장에 실패했습니다. 분석 결과는 사용할 수 있습니다.");
         }
     }
 
@@ -310,7 +311,8 @@ public class Analyzer implements Analysis {
                 }
             }
         } catch (CheckpointException e) {
-
+            // 종료 시 체크포인트 메타데이터 저장 실패는 분석 결과에 영향을 주지 않음
+            System.out.println("체크포인트 메타데이터 파일 저장에 실패했습니다. 분석 결과는 사용할 수 있습니다.");
         }
     }
 
@@ -323,6 +325,8 @@ public class Analyzer implements Analysis {
             checkpointSession.save(fileTokenCountResult);
         } catch (CheckpointException e) {
             // 분석 성공했지만 체크포인트 저장에 실패한 경우
+            System.out.println("체크포인트 저장 실패: " + fileTokenCountResult.getFilePath());
+            System.out.println("분석 결과는 집계되었습니다.");
         }
     }
 }
