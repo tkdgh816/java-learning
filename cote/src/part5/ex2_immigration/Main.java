@@ -5,6 +5,34 @@ package part5.ex2_immigration;
 
 import java.util.Arrays;
 
+class Solution {
+    public long solution(int n, int[] times) {
+        int max = Arrays.stream(times).max().orElseThrow();
+        long start = 0L;
+        long end = (long) max * n;
+
+        while (start <= end) {
+            long mid = start + (end - start) / 2;
+
+            // 특정 시간에 처리할 수 있는 최대 수용 인원은
+            // 특정 시간에 각 심사관이 최대로 처리할 수 있는 인원의 합
+            long capacity = Arrays.stream(times)
+                    .mapToLong(time -> mid / time)
+                    .sum();
+
+            // 최대 수용 인원이 모든 인원수보다 작다면 시간을 늘림
+            // 크거나 같다면 하나의 최소 시간을 찾을 때까지 시간을 줄임
+            if (capacity < n) {
+                start = mid + 1;
+            } else {
+                end = mid - 1;
+            }
+        }
+
+        return start;
+    }
+}
+
 public class Main {
     static void main(String[] args) {
         Solution sol = new Solution();
@@ -38,33 +66,5 @@ public class Main {
 
         var r10 = sol.solution(1000000000, new int[]{1000000000, 1000000000});
         System.out.println(r10); // 기대값: 500000000000000000
-    }
-}
-
-class Solution {
-    public long solution(int n, int[] times) {
-        int max = Arrays.stream(times).max().orElseThrow();
-        long start = 0L;
-        long end = (long) max * n;
-
-        while (start <= end) {
-            long mid = start + (end - start) / 2;
-
-            // 특정 시간에 처리할 수 있는 최대 수용 인원은
-            // 특정 시간에 각 심사관이 최대로 처리할 수 있는 인원의 합
-            long capacity = Arrays.stream(times)
-                    .mapToLong(time -> mid / time)
-                    .sum();
-
-            // 최대 수용 인원이 모든 인원수보다 작다면 시간을 늘림
-            // 크거나 같다면 하나의 최소 시간을 찾을 때까지 시간을 줄임
-            if (capacity < n) {
-                start = mid + 1;
-            } else {
-                end = mid - 1;
-            }
-        }
-
-        return start;
     }
 }
