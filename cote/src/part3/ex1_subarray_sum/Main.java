@@ -36,13 +36,14 @@ class Solution1 {
 // 시간 복잡도 O(n)
 class Solution2 {
     public int subarraySum(int[] nums, int k) {
-        // 이전 누적합들
+        // key: 누적합 값, value: key에 해당하는 누적합이 등장한 횟수
+        // nums를 앞에서부터 순회하며 map을 채워넣음
         Map<Integer, Integer> map = new HashMap<>();
 
         int prefixSum = 0;
         int count = 0;
 
-        // 다음에서 계산할 순회의 현재 누적합 자체가
+        // 다음에서 진행할 순회의 각 단계에서 현재 누적합 자체가
         // k가 되는 경우를 카운팅하기 위함
         map.put(0, 1);
 

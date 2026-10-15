@@ -59,6 +59,10 @@ class Solution2 {
             }
         }
 
+        if (lowerBound < 0) {
+            return new int[]{-1, -1};
+        }
+
         start = 0;
         end = nums.length - 1;
         int upperBound = -1;

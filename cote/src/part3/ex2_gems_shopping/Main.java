@@ -9,10 +9,15 @@ import java.util.Map;
 
 class Solution1 {
     public int[] solution(String[] gems) {
+        // 보석 종류 수 구하기
         long count = Arrays.stream(gems).distinct().count();
+
+        // Key: 보석 이름, value: 현재 구간에서 해당 보석이 등장한 횟수
         Map<String, Integer> map = new HashMap<>();
 
+        // 조건을 만족하는 길이 구간과 그 길이
         int[] answer = new int[]{1, gems.length};
+        int length = answer[1] - answer[0];
 
         // 초깃값
         map.put(gems[0], 1);
@@ -21,9 +26,10 @@ class Solution1 {
 
         while (true) {
             // 최소 길이 구간 구하기
-            if (map.size() == count && right - left < answer[1] - answer[0]) {
+            if (map.size() == count && right - left < length) {
                 answer[0] = left + 1;
                 answer[1] = right + 1;
+                length = answer[1] - answer[0];
             }
 
             // 오른쪽 확장, 왼쪽 축소
