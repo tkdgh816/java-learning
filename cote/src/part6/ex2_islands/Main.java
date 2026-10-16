@@ -26,17 +26,18 @@ class Solution1 {
 
                 Deque<Cell> stack = new ArrayDeque<>();
                 stack.push(new Cell(i, j));
+                visited[i][j] = true;
 
                 while (!stack.isEmpty()) {
                     Cell cell = stack.pop();
                     int row = cell.row;
                     int col = cell.col;
-                    visited[row][col] = true;
 
                     // left
                     if (row > 0) {
                         if (!visited[row - 1][col] && grid[row - 1][col] == '1') {
                             stack.push(new Cell(row - 1, col));
+                            visited[row - 1][col] = true;
                         }
                     }
 
@@ -44,6 +45,7 @@ class Solution1 {
                     if (row < m - 1) {
                         if (!visited[row + 1][col] && grid[row + 1][col] == '1') {
                             stack.push(new Cell(row + 1, col));
+                            visited[row + 1][col] = true;
                         }
                     }
 
@@ -51,6 +53,7 @@ class Solution1 {
                     if (col > 0) {
                         if (!visited[row][col - 1] && grid[row][col - 1] == '1') {
                             stack.push(new Cell(row, col - 1));
+                            visited[row][col - 1] = true;
                         }
                     }
 
@@ -58,6 +61,7 @@ class Solution1 {
                     if (col < n - 1) {
                         if (!visited[row][col + 1] && grid[row][col + 1] == '1') {
                             stack.push(new Cell(row, col + 1));
+                            visited[row][col + 1] = true;
                         }
                     }
                 }
@@ -93,13 +97,12 @@ class Solution2 {
 
                 Deque<Cell> stack = new ArrayDeque<>();
                 stack.push(new Cell(i, j));
+                visited[i][j] = true;
 
                 while (!stack.isEmpty()) {
                     Cell cell = stack.pop();
                     int row = cell.row;
                     int col = cell.col;
-
-                    visited[row][col] = true;
 
                     for (int d = 0; d < rowDelta.length; d++) {
                         int nextRow = row + rowDelta[d];
@@ -119,6 +122,7 @@ class Solution2 {
                         }
 
                         stack.push(new Cell(nextRow, nextCol));
+                        visited[nextRow][nextCol] = true;
                     }
                 }
 

@@ -13,6 +13,7 @@ import java.util.List;
 // 인접 리스트 + DFS -> 최대 정점 수 2 * 10^5, 최대 간선 수 2 * 10^5 공간복잡도 O(V+E)
 class Solution1 {
     public boolean validPath(int n, int[][] edges, int source, int destination) {
+        // 인접 리스트 만들기
         List<List<Integer>> graph = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             graph.add(new ArrayList<>());
@@ -25,17 +26,20 @@ class Solution1 {
         boolean[] visited = new boolean[n];
         Deque<Integer> stack = new ArrayDeque<>();
         stack.push(source);
+        visited[source] = true;
 
+        // DFS로 탐색
+        // 탐색 중 목적지 발견하면 true 반환
         while (!stack.isEmpty()) {
             int node = stack.pop();
             if (node == destination) {
                 return true;
             }
-            visited[node] = true;
 
             for (int connected : graph.get(node)) {
                 if (!visited[connected]) {
                     stack.push(connected);
+                    visited[connected] = true;
                 }
             }
         }
@@ -106,27 +110,30 @@ class Solution2 {
 // 인접 행렬 + DFS -> 최대 정점 수 2 * 10^5이고 공간복잡도 O(V^2)이므로 부적합
 class Solution3 {
     public boolean validPath(int n, int[][] edges, int source, int destination) {
+        // 인접 행렬 만들기
         boolean[][] graph = new boolean[n][n];
         for (int[] edge : edges) {
             graph[edge[0]][edge[1]] = true;
             graph[edge[1]][edge[0]] = true;
         }
 
+        // DFS로 탐색
+        // 탐색 중 목적지 발견하면 true 반환
         boolean[] visited = new boolean[n];
-
         Deque<Integer> stack = new ArrayDeque<>();
         stack.push(source);
+        visited[source] = true;
 
         while (!stack.isEmpty()) {
             int node = stack.pop();
             if (node == destination) {
                 return true;
             }
-            visited[node] = true;
 
             for (int i = 0; i < n; i++) {
                 if (graph[node][i] && !visited[i]) {
                     stack.push(i);
+                    visited[i] = true;
                 }
             }
         }
