@@ -6,7 +6,12 @@ import java.util.Objects;
 public class Test {
     public static void check(String name, Object actual, Object expected) {
         boolean ok = Objects.deepEquals(actual, expected);
-        System.out.printf("%s %s \t %s (exp: %s)%n", name, ok ? "✅" : "❌" , str(actual), str(expected));
+        System.out.printf("%s %s \t %s (exp: %s)%n", name, ok ? "✅" : "❌", str(actual), str(expected));
+    }
+
+    public static void mark(String name, Object actual, Object expected) {
+        boolean ok = Objects.deepEquals(actual, expected);
+        System.out.printf("%s %s%n", name, ok ? "✅" : "❌");
     }
 
     // 배열이면 deepToString, 아니면 String.valueOf (null 안전)
