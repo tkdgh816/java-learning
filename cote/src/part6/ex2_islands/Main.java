@@ -85,9 +85,9 @@ class Solution2 {
         boolean[][] visited = new boolean[m][n];
 
         // 위아래로 볼 것
-        // rowDelta[0]colDelta[0]: left, [1][1]: right, [2][2]: up, [3][3]: down
+        // rowDelta[0]colDelta[0]: up, [1][1]: down, [2][2]: left, [3][3]: right
         int[] rowDelta = {-1, 1, 0, 0};
-        int[] colDelta = {0, 0, 1, -1};
+        int[] colDelta = {0, 0, -1, 1};
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
