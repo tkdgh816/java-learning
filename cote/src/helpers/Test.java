@@ -2,6 +2,7 @@ package helpers;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class Test {
     public static void check(String name, Object actual, Object expected) {
@@ -12,6 +13,28 @@ public class Test {
     public static void mark(String name, Object actual, Object expected) {
         boolean ok = Objects.deepEquals(actual, expected);
         System.out.printf("%s %s%n", name, ok ? "✅" : "❌");
+    }
+
+    public static void check(String name, Supplier<?> fn, Object expected) {
+        long t0 = System.nanoTime();
+        Object actual = fn.get();
+        long ns = System.nanoTime() - t0;
+
+        boolean ok = Objects.deepEquals(actual, expected);
+        System.out.printf("%s %s (%s) \t %s (exp: %s)%n", name, ok ? "✅" : "❌", time(ns), str(actual), str(expected));
+    }
+
+    public static void mark(String name, Supplier<?> fn, Object expected) {
+        long t0 = System.nanoTime();
+        Object actual = fn.get();
+        long ns = System.nanoTime() - t0;
+
+        boolean ok = Objects.deepEquals(actual, expected);
+        System.out.printf("%s %s (%s)%n", name, ok ? "✅" : "❌", time(ns));
+    }
+
+    static String time(long ns) {
+        return String.format("%.3f ms", ns / 1_000_000.0);
     }
 
     // 배열이면 deepToString, 아니면 String.valueOf (null 안전)

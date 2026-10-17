@@ -7,6 +7,7 @@ import helpers.Test;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.function.Supplier;
 
 // BFS 사용 (BFS는 너비 우선 탐색이므로 최단 거리 발견 시 바로 종료 가능)
 class Solution {
@@ -233,7 +234,7 @@ public class Main {
             input[i] = new int[100];
             for (int j = 0; j < 100; j++) input[i][j] = 1;
         }
-        var r19 = sol.solution(input);
+        Supplier<Integer> r19 = () -> sol.solution(input);
         Test.check("r19", r19, 199);
     }
 }

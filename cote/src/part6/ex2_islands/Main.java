@@ -8,6 +8,7 @@ import helpers.Test;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.function.Supplier;
 
 // 직관적으로
 class Solution1 {
@@ -256,7 +257,7 @@ public class Main {
 // 전부 '1': 재귀 DFS면 StackOverflowError가 날 수 있는 케이스
         char[][] big1 = new char[300][300];
         for (char[] row : big1) Arrays.fill(row, '1');
-        var r16 = sol.numIslands(big1);
+        Supplier<Integer> r16 = () -> sol.numIslands(big1);
         Test.check("r16", r16, 1);
 
 // 체스판 무늬: (i + j)가 짝수인 칸만 '1' → 모두 서로 떨어진 섬
@@ -264,7 +265,7 @@ public class Main {
         for (int i = 0; i < 300; i++)
             for (int j = 0; j < 300; j++)
                 big2[i][j] = ((i + j) % 2 == 0) ? '1' : '0';
-        var r17 = sol.numIslands(big2);
+        Supplier<Integer> r17 = () -> sol.numIslands(big2);
         Test.check("r17", r17, 45000);
     }
 }

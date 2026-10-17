@@ -9,6 +9,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.function.Supplier;
 
 // 인접 리스트 + DFS -> 최대 정점 수 2 * 10^5, 최대 간선 수 2 * 10^5 공간복잡도 O(V+E)
 class Solution1 {
@@ -227,7 +228,7 @@ public class Main {
             edges19[i] = new int[]{i, i + 1};
         }
 
-        var r19 = sol.validPath(n19, edges19, 0, n19 - 1);
+        Supplier<Boolean> r19 = () -> sol.validPath(n19, edges19, 0, n19 - 1);
         Test.check("r19", r19, true);
 
 // 20. 최대 크기에서 두 연결 요소로 분리된 그래프
@@ -246,7 +247,7 @@ public class Main {
             edges20[index++] = new int[]{i, i + 1};
         }
 
-        var r20 = sol.validPath(n20, edges20, 0, n20 - 1);
+        Supplier<Boolean> r20 = () -> sol.validPath(n20, edges20, 0, n20 - 1);
         Test.check("r20", r20, false);
     }
 }
