@@ -1,6 +1,6 @@
 package part7.drill.mst;
 
-import codingtest.hw1017.part7.drill.dsu.DSUTemplate;
+import part7.drill.dsu.DSUTemplate;
 
 import java.util.ArrayList;
 import java.util.Comparator;
