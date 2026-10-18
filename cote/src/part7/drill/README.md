@@ -1,4 +1,4 @@
-# 기본 구현 연습 (Part 7. 그래프 심화)
+# 기본 구현 연습 (DSU, 위상정렬, MST)
 
 <details>
 <summary>개요</summary> 
@@ -88,7 +88,7 @@ System.out.println(dsu.connected(0, 5)); // true
 
 - [구현 및 테스트](topological_sort/Main.java)
 
-- 테스트 그래프 시각화
+- 테스트 그래프 시각화 (유향 비순환 그래프)
 
 ![위상 정렬용 유향 비순환 그래프](DAG.png)
 
@@ -108,6 +108,23 @@ int[][] edges = {
 
 - [구현 및 테스트](mst/Main.java)
 
-- 테스트 그래프 시각화
+- 테스트 그래프 시각화 (무방향 가중 그래프)
 
 ![최소 신장 트리 그래프](MST.png)
+
+```java
+record KruskalEdge(int u, int v, int weight) {
+}
+
+List<Edge> edges = new ArrayList<>(List.of(
+        new Edge(0, 1, 4),
+        new Edge(0, 2, 2),
+        new Edge(1, 2, 1),
+        new Edge(1, 3, 5),
+        new Edge(2, 3, 8),
+        new Edge(2, 4, 10),
+        new Edge(3, 4, 2),
+        new Edge(3, 5, 6),
+        new Edge(4, 5, 3)
+));
+```
