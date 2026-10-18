@@ -1,4 +1,4 @@
-package q42576;
+package programmers.q42576;
 
 import java.util.HashMap;
 import java.util.Map;

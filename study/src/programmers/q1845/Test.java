@@ -1,4 +1,4 @@
-package q1845;
+package programmers.q1845;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package q12915;
+package programmers.q12915;
 
 import java.util.Arrays;
 

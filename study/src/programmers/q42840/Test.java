@@ -1,4 +1,4 @@
-package q42840;
+package programmers.q42840;
 
 import java.util.Arrays;
 import java.util.HashMap;

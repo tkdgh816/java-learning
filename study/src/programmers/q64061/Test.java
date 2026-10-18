@@ -1,4 +1,4 @@
-package q64061;
+package programmers.q64061;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

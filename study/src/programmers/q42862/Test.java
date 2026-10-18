@@ -1,4 +1,4 @@
-package q42862;
+package programmers.q42862;
 
 import java.util.*;
 

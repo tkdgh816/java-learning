@@ -1,4 +1,4 @@
-package q258712;
+package programmers.q258712;
 
 import java.util.*;
 import java.util.stream.Collectors;

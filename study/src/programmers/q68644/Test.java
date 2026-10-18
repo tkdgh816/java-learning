@@ -1,4 +1,4 @@
-package q68644;
+package programmers.q68644;
 
 import java.util.Arrays;
 import java.util.Set;
