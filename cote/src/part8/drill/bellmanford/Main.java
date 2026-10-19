@@ -20,9 +20,41 @@ public class Main {
     }
 }
 
-class BellmanFord implements BellmanFordTemplate{
+class BellmanFord implements BellmanFordTemplate {
+    static final long INF = Long.MAX_VALUE;
+
     @Override
     public long[] bellmanFord(int n, List<Edge> edges, int start) {
-        return new long[0];
+        long[] distances = new long[n];
+        Arrays.fill(distances, INF);
+        distances[start] = 0;
+
+        for (int i = 0; i < n; i++) {
+            boolean updated = false;
+
+            for (Edge edge : edges) {
+                if (distances[edge.from()] == INF) {
+                    continue;
+                }
+
+                long distance = distances[edge.from()] + edge.weight();
+
+                if (distance >= distances[edge.to()]) {
+                    continue;
+                }
+                distances[edge.to()] = distance;
+                updated = true;
+
+                if (i == n - 1) {
+                    throw new IllegalStateException("음수 사이클 존재");
+                }
+            }
+
+            if (!updated) {
+                break;
+            }
+        }
+
+        return distances;
     }
 }

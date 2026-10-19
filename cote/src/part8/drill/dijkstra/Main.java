@@ -37,7 +37,7 @@ class Dijkstra implements DijkstraTemplate {
 
         while (!pq.isEmpty()) {
             State current = pq.poll();
-            if (current.distance != distances[current.node()]) {
+            if (current.distance > distances[current.node()]) {
                 continue;
             }
 
