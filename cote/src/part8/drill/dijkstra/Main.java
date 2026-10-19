@@ -32,7 +32,7 @@ class Dijkstra implements DijkstraTemplate {
         Arrays.fill(distances, INF);
         distances[start] = 0;
 
-        PriorityQueue<State> pq = new PriorityQueue<>(Comparator.comparing(State::distance));
+        PriorityQueue<State> pq = new PriorityQueue<>(Comparator.comparingLong(State::distance));
         pq.offer(new State(start, distances[start]));
 
         while (!pq.isEmpty()) {

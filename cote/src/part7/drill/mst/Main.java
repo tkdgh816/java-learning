@@ -44,7 +44,7 @@ public class Main {
 class Kruskal implements KruskalTemplate {
     @Override
     public long kruskal(int n, List<KruskalEdge> edges) {
-        edges.sort(Comparator.comparing(KruskalEdge::weight));
+        edges.sort(Comparator.comparingLong(KruskalEdge::weight));
         DSU dsu = new DSU(n);
 
         long result = 0;
@@ -127,10 +127,10 @@ class Prim implements PrimTemplate {
         boolean[] visited = new boolean[graph.size()];
         int count = 0;
 
-        PriorityQueue<PrimEdge> pq = new PriorityQueue<>(Comparator.comparing(PrimEdge::weight));
+        PriorityQueue<PrimEdge> pq = new PriorityQueue<>(Comparator.comparingLong(PrimEdge::weight));
         pq.offer(new PrimEdge(start, 0));
 
-        while (!pq.isEmpty()) {
+        while (!pq.isEmpty() && count < graph.size()) {
             PrimEdge current = pq.poll();
             if (visited[current.to()]) {
                 continue;
