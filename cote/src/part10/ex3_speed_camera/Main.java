@@ -10,12 +10,13 @@ import java.util.Comparator;
 
 // 목표: 단속 카메라를 최소한으로 설치
 
-// 먼저 진입한 차량부터 차량을 추가하며 공통 구간이 있는지 판단하고
+// 먼저 진입한 차량부터 차량을 추가하며 공통 구간이 있는지 판단
 // 공통 구간이 존재한다면 그 구간으로 공통 구간을 좁히고
 // 공통 구간이 존재하지 않는다면 카메라를 늘리고 새로운 공통 구간을 찾음
 
-// 현재 차량을 기존 공통 구간에 포함시킬 수 있다면
-// 새로운 공통 구간을 만들어 굳이 카메라를 추가할 필요가 없음
+// 새로 진입하는 차량을 기존 공통 구간에 포함시킬 수 있다면
+// 새로운 공통 구간을 굳이 만들어서
+// 카메라 대수를 불필요하게 늘리는 선택을 할 필요가 없음
 class Solution1 {
     public int solution(int[][] routes) {
         int count = 0;
@@ -25,10 +26,15 @@ class Solution1 {
         int end = Integer.MIN_VALUE;
 
         for (int[] route : routes) {
+            // 새로 진입한 차량이 기존 공통 구간에 포함된다면
+            // 공통 구간을 갱신하고 기존 카메라 사용 가능
             if (route[0] <= end) {
                 end = Math.min(end, route[1]);
                 continue;
             }
+
+            // 그렇지 않다면 새로운 공통 구간을 만들고
+            // 그 구간을 위한 카메라를 추가함
             end = route[1];
             count++;
         }
@@ -46,19 +52,33 @@ class Solution2 {
 
         // 진출 지점을 기준으로 오름차순 정렬
         Arrays.sort(routes, Comparator.comparingInt(route -> route[1]));
-        int end = Integer.MIN_VALUE;
+        int cam = Integer.MIN_VALUE;
 
         for (int[] route : routes) {
-            if (route[0] <= end) {
+            // 현재 차량의 진입 지점이 카메라 위치 뒤에 있지 않다면
+            // 그 차량은 해당 카메라가 단속할 수 있음
+            if (route[0] <= cam) {
                 continue;
             }
-            end = route[1];
+
+            // 그렇지 않다면(현재 차량이 카메라보다 더 뒤에서 진입)
+            // 차량의 진출 지점에 새 카메라 설치
+            cam = route[1];
             count++;
         }
 
         return count;
     }
 }
+
+// 두 방식 비교
+// [Solution1]      [Solution2]
+// ■■■■■■◻◻◻◻◻◻     ◻■■■◻◻◻◻◻◻◻◻
+// ◻■■■◻◻◻◻◻◻◻◻     ■■■■■■◻◻◻◻◻◻
+// ◻◻◻■■■■■■◻◻◻     ◻◻◻■■■■■■◻◻◻
+// ◻◻◻◻◻■■■■■■■     ◻◻◻◻◻◻◻■■■◻◻
+// ◻◻◻◻◻◻◻■■■◻◻     ◻◻◻◻◻■■■■■■■
+// ◻◻◻]◻◻◻◻◻]◻◻     ◻◻◻✓◻◻◻◻◻✓◻◻
 
 public class Main {
     static void main(String[] args) {
