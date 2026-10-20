@@ -44,7 +44,7 @@ class Solution2 {
     public int solution(int[][] routes) {
         int count = 0;
 
-        // 진입 지점을 기준으로 오름차순 정렬
+        // 진출 지점을 기준으로 오름차순 정렬
         Arrays.sort(routes, Comparator.comparingInt(route -> route[1]));
         int end = Integer.MIN_VALUE;
 
