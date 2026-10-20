@@ -11,7 +11,7 @@ import java.util.Arrays;
 // 제한 무게를 넘지 않도록 하는 가벼운 사람 누구를 추가하든
 // 최적해에 영향을 주지 않음
 // 그 이유는 가장 무거운 사람과 함께 탈 수 있는 정도로 가벼운 사람이라면
-// 그 사람은 다른 어떤 사람과도 함께 탈 수 있기 때문임
+// 그 사람은 남아 있는 다른 어떤 사람과도 함께 탈 수 있기 때문임
 
 class Solution {
     public int solution(int[] people, int limit) {
