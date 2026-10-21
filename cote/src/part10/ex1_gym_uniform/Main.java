@@ -20,7 +20,7 @@ class Solution {
     public int solution(int n, int[] lost, int[] reserve) {
         Set<Integer> lostSet = Arrays.stream(lost)
                 .boxed()
-                .collect(Collectors.toCollection(HashSet<Integer>::new));
+                .collect(Collectors.toCollection(HashSet::new));
 
         // 빌려주는 학생을 앞에서부터 순회하기 위해서 TreeSet 사용
         Set<Integer> reserveSet = Arrays.stream(reserve)
@@ -28,6 +28,8 @@ class Solution {
                 .collect(Collectors.toCollection(TreeSet::new));
 
         // 도난과 여벌이 모두 발생한 학생
+        // reserveSet에 변동이 생기므로
+        // reserveSet이 아닌 reserve를 순회함
         for (int r : reserve) {
             if (lostSet.remove(r)) {
                 reserveSet.remove(r);
