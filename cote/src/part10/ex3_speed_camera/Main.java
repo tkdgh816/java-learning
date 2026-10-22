@@ -8,7 +8,7 @@ import helpers.Test;
 import java.util.Arrays;
 import java.util.Comparator;
 
-// 목표: 단속 카메라를 최소한으로 설치
+// 목표: 단속카메라를 최소한으로 설치
 
 // 먼저 진입한 차량부터 차량을 추가하며 공통 구간이 있는지 판단
 // 공통 구간이 존재한다면 그 구간으로 공통 구간을 좁히고
