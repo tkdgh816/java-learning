@@ -32,3 +32,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+## 연습 디렉터리는 제외
+scratch/
