@@ -94,7 +94,7 @@ class Solution {
                 phase++;
             }
 
-            // 이동 후의 지점을 반환
+            // 이동 완료된 지점을 반환
             return new Point(current[0], current[1]);
         }
     }
