@@ -16,7 +16,7 @@ class Solution {
         // 각 로봇의 경로들로 로봇 목록 생성
         for (int[] route : routes) {
             List<int[]> list = Arrays.stream(route)
-                    .mapToObj(p -> points[p - 1])
+                    .mapToObj(i -> points[i - 1])
                     .toList();
             robots.add(new Robot(list));
         }
