@@ -44,10 +44,12 @@ class Solution {
                 }
             }
 
+            // 제거된 항목이 없으면 종료
             if (rows.isEmpty()) {
                 break;
             }
 
+            // 중력처리
             for (var entry : rows.entrySet()) {
                 int rowNum = entry.getKey();
                 Set<Integer> removed = entry.getValue();
