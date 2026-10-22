@@ -89,8 +89,7 @@ class Solution {
                 }
             }
 
-            // 한 칸 이동 후 목표 지점에 도달하면
-            // 다음 단계로 넘어감
+            // 이동 완료 후 목표 지점에 도달하면 다음 단계로 넘어감
             if (current[0] == destination[0] && current[1] == destination[1]) {
                 phase++;
             }
