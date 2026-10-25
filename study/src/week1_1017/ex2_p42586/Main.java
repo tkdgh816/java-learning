@@ -1,4 +1,4 @@
-package week1_1017.p42586;
+package week1_1017.ex2_p42586;
 
 import helpers.Test;
 
