@@ -1,4 +1,4 @@
-package week1_1017.ex1_eof;
+package week1.ex1_eof;
 
 // https://www.hackerrank.com/challenges/java-end-of-file/problem
 

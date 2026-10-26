@@ -18,7 +18,7 @@ class Solution1 {
         PriorityQueue<Edge> pq = new PriorityQueue<>(Comparator.comparingInt(Edge::cost));
         pq.offer(new Edge(0, 0));
 
-        int count =0;
+        int count = 0;
         while (!pq.isEmpty() && count < n) {
             Edge current = pq.poll();
             if (visited[current.to()]) {

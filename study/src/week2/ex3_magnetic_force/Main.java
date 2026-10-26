@@ -1,4 +1,4 @@
-package week_1024.ex3_magnetic_force;
+package week2.ex3_magnetic_force;
 
 // https://leetcode.com/problems/magnetic-force-between-two-balls/description/
 
@@ -30,7 +30,7 @@ class Solution {
             int minDistance = Integer.MAX_VALUE;
             for (int i = 0; i < selectedIndexes.size() - 1; i++) {
                 int current = selectedIndexes.get(i);
-                int next = selectedIndexes.get(i+1);
+                int next = selectedIndexes.get(i + 1);
                 minDistance = Math.min(minDistance, original[next] - original[current]);
             }
             max = Math.max(max, minDistance);
@@ -45,9 +45,18 @@ class Solution {
     }
 }
 
+class Solution2 {
+    public int maxDistance(int[] position, int m) {
+
+        return 0;
+    }
+}
+
 public class Main {
     static void main(String[] args) {
-        Solution sol = new Solution();
+//        Solution sol = new Solution();
+        Solution2 sol = new Solution2();
+
 // 1. 기본 예제 1
         var r1 = sol.maxDistance(new int[]{1, 2, 3, 4, 7}, 3);
         Test.check("r1", r1, 3);
@@ -127,5 +136,63 @@ public class Main {
 // 20. 세 구간에 밀집된 바구니에 공 4개 배치
         var r20 = sol.maxDistance(new int[]{1, 2, 3, 10, 11, 12, 20, 21, 22}, 4);
         Test.check("r20", r20, 2);
+
+// 21. 최대 배열 크기, 공 2개
+        int[] p21 = new int[100_000];
+        for (int i = 0; i < p21.length; i++) p21[i] = i + 1;
+        var r21 = sol.maxDistance(p21.clone(), 2);
+        Test.check("r21", r21, 99_999);
+
+// 22. 최대 배열 크기, 공 50,000개
+        var r22 = sol.maxDistance(p21.clone(), 50_000);
+        Test.check("r22", r22, 2);
+
+// 23. 최대 배열 크기, 공 50,001개
+        var r23 = sol.maxDistance(p21.clone(), 50_001);
+        Test.check("r23", r23, 1);
+
+// 24. 최대 배열 크기, 큰 좌표 간격, 공 3개
+        int[] p24 = new int[100_000];
+        for (int i = 0; i < p24.length; i++) p24[i] = 1 + i * 10_000;
+        var r24 = sol.maxDistance(p24.clone(), 3);
+        Test.check("r24", r24, 499_990_000);
+
+// 25. 최대 배열 크기, 큰 좌표 간격, 공 50,000개
+        var r25 = sol.maxDistance(p24.clone(), 50_000);
+        Test.check("r25", r25, 20_000);
+
+// 26. 최대 배열 크기, 정렬되지 않은 입력
+        int[] p26 = new int[100_000];
+        for (int i = 0; i < p26.length; i++) p26[i] = (int) ((i * 99_991L) % 100_000) + 1;
+        var r26 = sol.maxDistance(p26, 25_000);
+        Test.check("r26", r26, 4);
+
+// 27. 최대 배열 크기, 양 끝에 밀집된 바구니, 공 3개
+        int[] p27 = new int[100_000];
+        for (int i = 0; i < p27.length; i++) p27[i] = i < 50_000 ? i + 1 : 999_950_001 + i - 50_000;
+        var r27 = sol.maxDistance(p27.clone(), 3);
+        Test.check("r27", r27, 49_999);
+
+// 28. 최대 배열 크기, 양 끝에 밀집된 바구니, 공 5개
+        var r28 = sol.maxDistance(p27.clone(), 5);
+        Test.check("r28", r28, 24_999);
+
+// 29. 최대 배열 크기, 모든 바구니 사용
+        var r29 = sol.maxDistance(p27.clone(), 100_000);
+        Test.check("r29", r29, 1);
+
+// 30. 최대 배열 크기, 최대 좌표 차이
+        var r30 = sol.maxDistance(p27.clone(), 2);
+        Test.check("r30", r30, 999_999_999);
+
+// 31. 배열 크기 10,000, 큰 좌표 간격, 공 3,334개
+        int[] p31 = new int[10_000];
+        for (int i = 0; i < p31.length; i++) p31[i] = 1 + i * 100_000;
+        var r31 = sol.maxDistance(p31.clone(), 3_334);
+        Test.check("r31", r31, 300_000);
+
+// 32. 배열 크기 10,000, 모든 바구니 사용
+        var r32 = sol.maxDistance(p31.clone(), 10_000);
+        Test.check("r32", r32, 100_000);
     }
 }

@@ -1,4 +1,4 @@
-package week_1024.ex1_range_sum;
+package week2.ex1_range_sum;
 
 // Range Sum Query - Immutable
 // https://leetcode.com/problems/range-sum-query-immutable/description/

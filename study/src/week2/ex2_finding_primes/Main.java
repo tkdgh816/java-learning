@@ -1,4 +1,4 @@
-package week_1024.ex2_finding_primes;
+package week2.ex2_finding_primes;
 
 // 소수 찾기
 // https://school.programmers.co.kr/learn/courses/30/lessons/42839

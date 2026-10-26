@@ -1,4 +1,4 @@
-package week1_1017.ex3_rank;
+package week1.ex3_rank;
 
 // https://leetcode.com/problems/rank-transform-of-an-array/
 
